@@ -2,28 +2,17 @@
 
 ## The actual goal
 
-Buy **one** iPad good for Procreate drawing with a pressure-sensitive Apple
-Pencil, at the best price-to-quality available from Canadian retailers — new,
-refurbished or used — without babysitting retailer pages.
+Buy one iPad good for Procreate drawing with a pressure-sensitive Apple Pencil, at the best price-to-quality available from Canadian retailers — new, refurbished or used — without babysitting retailer pages.
 
-Everything below is subordinate to that. It is a filter that emails me once a
-day, not a price-intelligence platform, and buying the iPad ends the project
-whether or not every phase was built.
+It is a filter that emails me once a day, not a price-intelligence platform.
 
-This plan borrows its skeleton from `../mini-pc-price` (observation log,
-config-as-interface, GitHub Actions poll, coverage reporting) and is shaped by
-one difference: **marketplaces are out.** No eBay, Kijiji, Facebook, Back
-Market, Reebelo, Newegg third-party, or Amazon third-party/Renewed. That
-removes the whole seller-reputation layer mini-pc needed, and moves the hard
-part from *parsing chaotic listings* to *getting past bot defenses on big-box
-retailers* (§3, §8).
+This plan borrows its skeleton from `../mini-pc-price` (observation log, config-as-interface, GitHub Actions poll, coverage reporting) and is shaped by one difference: **marketplaces are out.** No eBay, Kijiji, Facebook, Back Market, Reebelo, Newegg third-party, or Amazon third-party/Renewed. That removes the whole seller-reputation layer mini-pc needed, and moves the hard part from *parsing chaotic listings* to *getting past bot defenses on big-box retailers* (§3, §8).
 
 ---
 
 ## 1. What counts as a candidate
 
-Three gates. Failing any one excludes a listing at any price; each is binary for
-a reason no discount fixes.
+Three gates. Failing any one excludes a listing at any price; each is binary for a reason no discount fixes.
 
 | Gate | Why no price makes it acceptable |
 | --- | --- |
@@ -394,15 +383,10 @@ Table-driven cases, each one a real title shape seen in the research:
 
 (Figures are illustrative, not observed.)
 
-- **Changes first**, because they are why today's email differs from
-  yesterday's. "Changed" means list price, stock or appearance — never
-  effective price, which also moves when I edit `rules.yaml`.
-- **One row per key**, cheapest listing only. Other listings for the same key
-  appear as a count (`+2 more`), not rows.
-- **Held for review** is where the parser and the condition table admit what
-  they don't know (§1, §6).
-- **Coverage** is computed from the observation files, never from a success
-  flag, and per source, because the split runners fail independently.
+- **Changes first**, because they are why today's email differs from yesterday's. "Changed" means list price, stock or appearance — never effective price, which also moves when I edit `rules.yaml`.
+- **One row per key**, cheapest listing only. Other listings for the same key appear as a count (`+2 more`), not rows.
+- **Held for review** is where the parser and the condition table admit what they don't know (§1, §6).
+- **Coverage** is computed from the observation files, never from a success flag, and per source, because the split runners fail independently.
 
 ---
 
@@ -413,29 +397,15 @@ showed a bot defense even from home. The failure mode is quiet: a block that
 returns HTTP 200 with a challenge page or an empty result looks like "no
 iPads today". Mitigations:
 
-- **An empty or challenge response is a failure, never zero listings.** Each
-  fetcher checks for its source's challenge markers (`bm-verify`,
-  `/blocked`, `px-captcha`, `Just a moment`) and for zero products from a
-  source that previously returned some. Shopify answers a wrong collection
-  handle with `200 {"products": []}` — mini-pc learned this — so Orchard and
-  Staples need the same check.
-- A blocked source is logged, skipped, and shown in coverage. It never fails
-  the run or blocks the digest.
+- **An empty or challenge response is a failure, never zero listings.** Each fetcher checks for its source's challenge markers (`bm-verify`, `/blocked`, `px-captcha`, `Just a moment`) and for zero products from a source that previously returned some. Shopify answers a wrong collection handle with `200 {"products": []}` — mini-pc learned this — so Orchard and Staples need the same check.
+- A blocked source is logged, skipped, and shown in coverage. It never fails the run or blocks the digest.
 - Politeness: 4 polls a day, a handful of requests per source per poll.
 
-**Parser misresolution** — an M2 Air read as M3, or a 12.9" Pro read as an Air.
-Mitigated by the resolution order, by never defaulting, and by the test table
-(§6).
+**Parser misresolution** — an M2 Air read as M3, or a 12.9" Pro read as an Air. Mitigated by the resolution order, by never defaulting, and by the test table (§6).
 
-**Apple refurb stock turns over in hours**, so a 6-hour poll still misses some
-units. Accepted: this tracker is for finding the price level worth waiting
-for, not for sniping one unit. If a missed Apple refurb unit ever mattered,
-the fix is a more frequent Apple-only schedule — Apple is the one source with
-no bot defense.
+**Apple refurb stock turns over in hours**, so a 6-hour poll still misses some units. Accepted: this tracker is for finding the price level worth waiting for, not for sniping one unit. If a missed Apple refurb unit ever mattered, the fix is a more frequent Apple-only schedule — Apple is the one source with no bot defense.
 
-**The catalog goes stale.** A new model launch (a likely autumn event) adds
-keys that `models.yaml` doesn't have. They surface as *unresolved*, which is the
-right failure — loud, not wrong.
+**The catalog goes stale.** A new model launch (a likely autumn event) adds keys that `models.yaml` doesn't have. They surface as *unresolved*, which is the right failure — loud, not wrong.
 
 ---
 
@@ -483,11 +453,7 @@ rank or are held for review.
 
 ### Reuse from mini-pc
 
-Copied and stripped, not shared as a library: `dotenv_lite.py`,
-`digest.py`'s SMTP path, `coverage.py` (re-pointed at per-source JSONL), the
-workflow's structure, and `install-task.ps1`. Not reused: `specs.py`,
-`ranking.py`'s upgrade math, `sellers`/`chassis`/`parts` config — the domain
-is different.
+Copied and stripped, not shared as a library: `dotenv_lite.py`, `digest.py`'s SMTP path, `coverage.py` (re-pointed at per-source JSONL), the workflow's structure, and `install-task.ps1`. Not reused: `specs.py`, `ranking.py`'s upgrade math, `sellers`/`chassis`/`parts` config — the domain is different.
 
 ---
 
@@ -518,14 +484,10 @@ ipad-price/
 └── tests/test_specs.py     # the suite that matters
 ```
 
-No Docker: the Actions runner and the desktop both run plain Python.
-Dependencies are `requests`, `pyyaml` and `curl_cffi` (Staples, and any other
-source Phase 0 shows needs a browser TLS fingerprint).
+No Docker: the Actions runner and the desktop both run plain Python. Dependencies are `requests`, `pyyaml` and `curl_cffi` (Staples, and any other source Phase 0 shows needs a browser TLS fingerprint).
 
 ---
 
 ## 11. Open questions
 
-- **Walmart marketplace with origin not stated.** Kept and marked `origin?`
-  (§1). If that turns out to be most Walmart rows, the choice between
-  excluding them and trusting them comes back.
+- **Walmart marketplace with origin not stated.** Kept and marked `origin?` (§1). If that turns out to be most Walmart rows, the choice between excluding them and trusting them comes back.
