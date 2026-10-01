@@ -134,9 +134,8 @@ a field missing on most rows can't be used to rank them.
 
 ## 3. Sources
 
-Verified 2026-09-30, every request from a **residential** IP. Nothing has
-been tested from a GitHub Actions runner yet — that is Phase 0 (§9), and until
-it runs, the "Actions?" column is a prediction.
+Verified 2026-09-30, every request from a **residential** IP. Until Phase 0
+(§9) places each source, the "Actions?" column is a prediction.
 
 | Source | Sells | Fetch path | Bot defense seen | Actions? |
 | --- | --- | --- | --- | --- |
@@ -163,6 +162,12 @@ Notes that constrain the implementation:
   only, so it's there as a new-price reference.
 - **Staples returns duplicate EN/FR entries** for one product; collapse them on
   SKU.
+- **Walmart's block is intermittent and answers 200.** A cold request to a
+  seeded `/ip/` page once got HTTP 200 with a `px-captcha` page and no
+  `__NEXT_DATA__`; the same request from a fresh session passed about 20
+  minutes later. Fetching the category page first in the same session passed
+  in both windows, so the fetcher always warms up there — and only the missing
+  payload, not the status, tells a block from a real page.
 - **Robots.** Best Buy disallows `/en-ca/search` but not `/api/`; Walmart
   disallows `/en/search` and bare `/en/ip/*` but allows `/en/ip/*/*` and
   `/c/kp/`. The fetch paths above stay inside what robots allows. Amazon's
@@ -415,12 +420,21 @@ iPads today". Mitigations:
 
 ### Phase 0 — reachability probe
 
-`scripts/probe.py`, run from Actions (`workflow_dispatch`) and from the
-desktop: one request per source, recording status, byte count and which
-challenge markers appear. The result goes in `research/probe-<date>.md` and
-fills the "Actions?" column in §3 with evidence.
+`scripts/probe.py`, run from Actions (`.github/workflows/probe.yml`,
+`workflow_dispatch`) and from the desktop. Each source is a fetch sequence in
+`sources.yaml`, run in one session so a warm-up step's cookies carry over
+(Walmart, §3), and run twice: once with plain `requests`, once with
+`curl_cffi`'s Chrome impersonation, so the reports also say which client each
+source needs. A step passes on status 200, none of the source's challenge
+markers, and its `expect` marker present — the last because a block can
+answer 200 (§8). Each run's report goes in `research/probe-<date>-<runner>.md`;
+the reports only show status, sizes and marker names, so they are safe to commit.
 
-**Done when:** every source is placed as Actions, desktop, or dropped.
+One run doesn't place a source: bot defenses vary with the runner's IP and the
+time of day, as Walmart's intermittent block shows (§3).
+
+**Done when:** every source is placed as Actions, desktop, or dropped, from at
+least two Actions runs on different days — three where those two disagree.
 
 ### Phase 1 — Apple end to end
 
@@ -482,7 +496,7 @@ ipad-price/
 │   ├── coverage.py         # per-source coverage from the log (§7, §8)
 │   └── dotenv_lite.py
 ├── scripts/                # probe.py (Phase 0), install-task.ps1 (Phase 3)
-├── .github/workflows/poll.yml
+├── .github/workflows/      # probe.yml (Phase 0), poll.yml (Phase 2)
 └── tests/test_specs.py     # the suite that matters
 ```
 
