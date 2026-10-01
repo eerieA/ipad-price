@@ -1,0 +1,21 @@
+# Hand-seeded listings for sources that can't be searched (plan.md §3):
+# Costco's search is too brittle, Walmart's search is disallowed by robots, and
+# Amazon runs at a handful of ASINs a day. Keyed by source id in sources.yaml,
+# whose `{url}` / `{asin}` placeholders are filled from these entries.
+#
+# `note` is free text for why an entry is here.
+
+costco:
+  - url: "https://www.costco.ca/p/-/apple-ipad-air-11-in-128gb-wi-fi-m4-chip-built-for-apple-intelligence/4000446407?langId=-24"
+    note: "iPad Air 11\" M4 128GB Wi-Fi, new"
+
+walmart:
+  - url: "https://www.walmart.ca/en/ip/Refurbished-Apple-iPad-Pro-11-2022-A2759-WiFi-256GB-Space-Gray-Grade-A/261FZFCVDKYK"
+    note: "M2 Pro (A2759), out of scope — here as a reachability sample only"
+
+amazon:
+  - asin: B0BFC27KPQ
+    note: >-
+      iPad Pro 11" 2nd gen (2020, Pencil 2 only), Renewed Premium, sold and
+      shipped by Amazon.ca: out of scope — a reachability sample only. Replace
+      with an in-scope Amazon-sold ASIN in Phase 3.

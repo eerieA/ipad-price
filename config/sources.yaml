@@ -1,0 +1,116 @@
+# Where listings come from and how each one is fetched (plan.md §3).
+#
+# Each source is a fetch sequence: `steps` run in order in one HTTP session, so
+# a later step carries the cookies an earlier one earned. That is how Walmart is
+# reached at all — its seeded product pages serve a PerimeterX challenge to a
+# cold session and the real page once the category page has been fetched first.
+#
+# `expect` is the byte string that proves the real payload arrived. It exists
+# because the failure to guard against is quiet: a block that answers HTTP 200
+# with a challenge page, or a Shopify collection answering a wrong handle with
+# `{"products": []}` (§8). A step passes only on status 200, no `challenge`
+# marker, and `expect` present. For JSON endpoints `expect` includes the opening
+# of the first element, so an empty array does not pass.
+#
+# `challenge` lists the source's own bot-defense markers, reported by name so a
+# failure says which defense fired. Empty where §3 saw none — `expect` still
+# catches a block there, it just can't name it.
+#
+# URL placeholders:
+#   {url}, {asin}  the source's first entry in watch_urls.yaml
+#   {sku}          `sample.sku` below — a probe-only value; Phase 3 takes SKUs
+#                  from the search results instead
+#
+# Which HTTP client each source needs (plain requests, or curl_cffi's Chrome
+# impersonation) is deliberately not recorded here yet: scripts/probe.py tries
+# both, and the answer is Phase 0's evidence (§9), not a guess made in advance.
+
+sources:
+  - id: apple_refurb
+    name: Apple CA — Certified Refurbished
+    challenge: []
+    steps:
+      - url: "https://www.apple.com/ca/shop/refurbished/ipad"
+        expect: "window.REFURB_GRID_BOOTSTRAP"
+
+  - id: apple_new
+    name: Apple CA — new
+    challenge: []
+    steps:
+      - url: "https://www.apple.com/ca/shop/buy-ipad/ipad-pro"
+        expect: '"fullPrice"'
+      - url: "https://www.apple.com/ca/shop/buy-ipad/ipad-air"
+        expect: '"fullPrice"'
+
+  - id: orchard
+    name: Orchard (getorchard.com)
+    challenge: []
+    steps:
+      - url: "https://getorchard.com/collections/refurbished-ipad-pros/products.json?limit=250"
+        expect: '"products":[{'
+      - url: "https://getorchard.com/collections/refurbished-tablets/products.json?limit=250"
+        expect: '"products":[{'
+
+  - id: costco
+    name: Costco
+    # Search is a POST to a Google Retail API with guessed parameters, too
+    # brittle to depend on, so Costco is URL-seeded only (§3).
+    challenge: []
+    steps:
+      - url: "{url}"
+        expect: '"@type":"Product"'
+
+  - id: bestbuy
+    name: Best Buy
+    challenge: ["Access Denied", "bm-verify"]
+    sample: {sku: "19495714"}   # iPad Pro M5 13" 256GB Wi-Fi, sold by Best Buy
+    steps:
+      - url: "https://www.bestbuy.ca/api/v2/json/search?categoryid=17154970&lang=en-CA&pageSize=100"
+        expect: '"products":[{'
+      - url: "https://www.bestbuy.ca/api/v2/json/search?categoryid=17154972&lang=en-CA&pageSize=100"
+        expect: '"products":[{'
+      - url: "https://www.bestbuy.ca/api/v2/json/product/{sku}?lang=en-CA"
+        expect: '"sku":'
+      - url: "https://www.bestbuy.ca/api/offers/v1/products/{sku}/offers"
+        expect: '"sellerId":'
+
+  - id: staples
+    name: Staples
+    # Returns EN and FR entries for one product; collapse on SKU (§3).
+    challenge: ["Just a moment"]
+    steps:
+      - url: "https://www.staples.ca/search/suggest.json?q=ipad&resources[type]=product&resources[limit]=10"
+        expect: '"products":[{'
+
+  - id: walmart
+    name: Walmart
+    # Robots allows /en/c/kp/ and /en/ip/*/* but not bare /en/ip/* (§3), so
+    # seeded URLs keep their slug.
+    challenge: ["px-captcha", "/blocked"]
+    steps:
+      - url: "https://www.walmart.ca/en/c/kp/refurbished-ipad"
+        expect: "__NEXT_DATA__"
+      - url: "{url}"
+        expect: "__NEXT_DATA__"
+
+  - id: amazon
+    name: Amazon.ca (sold by Amazon only)
+    challenge: ["bm-verify", "Robot Check", "validateCaptcha"]
+    steps:
+      - url: "https://www.amazon.ca/gp/product/ajax/aodAjaxMain/?asin={asin}"
+        expect: 'id="aod-asin-title-text"'
+
+# ── Excluded, with reasons (§3) ──────────────────────────────────────────────
+#   ebay, kijiji, facebook, back_market, reebelo
+#               — marketplaces: seller quality varies per listing.
+#   amazon third-party, Renewed included
+#               — the first Renewed offers sampled were all third-party, one
+#                 shipping from the US with import fees. Renewed sold by
+#                 Amazon.ca exists and is an open question (plan §11).
+#   newegg      — Cloudflare blocks it even from residential, and it carried
+#                 one in-scope iPad (a $2,599 marketplace M5).
+#   etek        — carries no iPads.
+#   visions, memory_express, london_drugs, canada_computers, the_source
+#               — unfetchable (Cloudflare 403 even impersonated,
+#                 client-rendered, expired TLS) or no iPads. Revisit only if
+#                 the core sources come up thin.

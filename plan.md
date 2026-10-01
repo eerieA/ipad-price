@@ -53,7 +53,7 @@ digest noise.
 | Best Buy Marketplace | `Refurbished Excellent` (1-yr warranty) | `Refurbished Good`/`Fair`; `Open Box` (marketplace, ungraded) |
 | Orchard | `Like New` | `Very Good`, `Good` |
 | Walmart (incl. marketplace) | title grade `A+`, `A`, `Excellent`, `Like New`, `Premium` | `B`, `Good`, `Fair`, `Used`; bare `Refurbished`/`Restored` (ungraded) |
-| Amazon.ca, sold by Amazon | new; Amazon Resale `Used – Like New` (graded and sold by Amazon itself) | Resale `Very Good`/`Good`/`Acceptable`; everything sold by third parties, including all of Renewed |
+| Amazon.ca, sold by Amazon | new; Amazon Resale `Used – Like New` (graded and sold by Amazon itself) | Resale `Very Good`/`Good`/`Acceptable`; everything sold by third parties, Renewed included. Renewed sold by Amazon.ca is on neither side yet (§11) |
 | Costco, Staples | new | — |
 
 A label on the excluded side is dropped quietly. A label on **neither** side —
@@ -182,8 +182,10 @@ config is edited.
 
 - **eBay, Kijiji, Facebook, Back Market, Reebelo** — too chaotic: seller
   quality varies per listing.
-- **Amazon third-party and Renewed** — every Renewed offer is a third-party
-  seller, and the sample showed US shipping with import fees.
+- **Amazon third-party, Renewed included** — the Renewed offers first sampled
+  were all third-party, one shipping from the US with import fees. Not every
+  Renewed offer is: a Renewed Premium ASIN (`B0BFC27KPQ`) is sold and shipped
+  by Amazon.ca. Whether those count is open (§11).
 - **Newegg** — Cloudflare blocks it even from residential, and it had one
   in-scope iPad (a $2,599 marketplace M5).
 - **eTek** — carries no iPads.
@@ -491,3 +493,4 @@ No Docker: the Actions runner and the desktop both run plain Python. Dependencie
 ## 11. Open questions
 
 - **Walmart marketplace with origin not stated.** Kept and marked `origin?` (§1). If that turns out to be most Walmart rows, the choice between excluding them and trusting them comes back.
+- **Amazon Renewed sold by Amazon.ca.** Unknown whether Amazon grades or refurbishes these itself or resells a supplier's unit under its own name, what grade `Renewed Premium` maps to, and how common such offers are for in-scope models. Until Phase 3 answers it from in-scope ASINs, these offers carry a label on neither side of the condition table, so they are held for review (§1) rather than ranked or dropped.

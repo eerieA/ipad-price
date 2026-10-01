@@ -1,0 +1,7 @@
+# Unpinned deliberately, as in mini-pc: a personal tool whose CI reinstalls
+# from scratch each run, where a breaking upgrade shows up as a coverage gap
+# (plan.md §7) rather than silently.
+requests
+pyyaml
+# Chrome TLS impersonation, for sources that reject a plain HTTP client (§3).
+curl_cffi
