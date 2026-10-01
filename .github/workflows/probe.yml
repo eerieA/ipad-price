@@ -1,0 +1,40 @@
+# Phase 0 reachability probe from a GitHub-hosted runner (plan.md §9).
+#
+# The question it answers is whether each source serves a datacenter IP, which
+# the desktop runs can't tell us (§3, §4). Manual only: bot defenses vary with
+# the runner's IP and the time of day, so a placement wants a few runs on
+# different days, and each one should be a deliberate act rather than a cron
+# that outlives Phase 0.
+#
+# The report goes to the run's summary page and an artifact, not a commit —
+# copying it into research/ is a reviewed, by-hand step.
+
+name: probe
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"   # matches the desktop, so the two reports differ only by network
+
+      - run: pip install -r requirements.txt
+
+      # A blocked source is not a failure: probe.py exits 0 whatever
+      # it finds, so a red run means the probe itself broke.
+      - name: Probe
+        run: python scripts/probe.py | tee probe.md >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: probe-${{ github.run_id }}
+          path: probe.md
