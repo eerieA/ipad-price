@@ -13,7 +13,6 @@ import ranking
 
 CONFIG = ranking.Config()
 NOW = datetime(2026, 10, 2, 15, 0, tzinfo=timezone.utc)
-PENCIL = CONFIG.rules["pencil_cost"]
 
 MINI_128 = "Refurbished iPad mini (A17 Pro) Wi-Fi 128GB - Purple"
 MINI_128_CELL = "Refurbished iPad mini (A17 Pro) Wi-Fi + Cellular 128GB - Blue"
@@ -33,9 +32,9 @@ def obs(listing, price, *, hours_ago=0, source="apple_refurb", title=MINI_128,
 
 # ── Gates (§1) ───────────────────────────────────────────────────────────────
 
-def test_a_listing_passing_every_gate_is_a_candidate_priced_with_the_pencil():
+def test_a_listing_passing_every_gate_is_a_candidate_at_its_listing_price():
     gated = ranking.gate(CONFIG, [obs("a", 709.0)])
-    assert [c.effective_price for c in gated.candidates] == [709.0 + PENCIL]
+    assert [c.effective_price for c in gated.candidates] == [709.0]
 
 
 # (observation, the dismissal reason it must be counted under)
@@ -85,7 +84,7 @@ def test_an_unknown_label_on_an_out_of_scope_model_is_not_review_noise():
 def test_source_adjustment_is_added_to_the_effective_price(monkeypatch):
     monkeypatch.setitem(CONFIG.sources["apple_refurb"], "source_adjustment", 50)
     [candidate] = ranking.gate(CONFIG, [obs("a", 709.0)]).candidates
-    assert candidate.effective_price == 709.0 + PENCIL + 50
+    assert candidate.effective_price == 709.0 + 50
 
 
 # ── One row per key, budget split (§2, §7) ───────────────────────────────────

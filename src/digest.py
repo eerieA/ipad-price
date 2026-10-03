@@ -48,8 +48,7 @@ def build(config, settings, observations, now):
     moved, first = changes.since(config, observations, now, settings["changes_window_hours"])
     covered = coverage.measure(config, observations, now, settings["coverage"])
 
-    lines = [f"iPad Digest — {_day(now)}    "
-             f"(Pencil Pro {money(config.rules['pencil_cost'])} included in every price)", ""]
+    lines = [f"iPad Digest — {_day(now)}", ""]
     lines += _changes_block(config, moved, first)
     lines += _ranked_block(config, f"within budget ({money(config.rules['budget'])})",
                            within, references)
@@ -81,8 +80,8 @@ def _change_line(config, change):
     c = change.candidate
     what = f"{describe_key(c.resolved.key):<20}  {config.short_name(c.observation['source']):<13}"
     if change.kind == changes.NEW:
-        return (f"+ NEW   {what}  {c.observation['condition_raw']}  "
-                f"{money(c.price)} ({money(c.effective_price)} eff.)")
+        effective = f" ({money(c.effective_price)} eff.)" if _adjusted(c) else ""
+        return f"+ NEW   {what}  {c.observation['condition_raw']}  {money(c.price)}{effective}"
     if change.kind == changes.PRICE:
         arrow = "↓ DROP" if c.price < change.was else "↑ RISE"
         return f"{arrow}  {what}  {money(change.was)} → {money(c.price)}"
@@ -90,6 +89,11 @@ def _change_line(config, change):
         state = "back in stock" if c.observation["in_stock"] else "out of stock"
         return f"! STOCK {what}  {state}"
     return f"− GONE  {what}  {money(c.price)}  ({_listed(change.listed_hours)})"
+
+
+def _adjusted(candidate):
+    """Effective and listing price differ only by a source_adjustment (§2)."""
+    return candidate.effective_price != candidate.price
 
 
 def _listed(hours):
@@ -109,7 +113,8 @@ def _ranked_block(config, title, rows, references):
         more = f"   +{others} more" if others else ""
         lines.append(f"  {money(best.effective_price):>7}  {describe_key(resolved.key):<20} "
                      f"{resolved.ram_gb:>2}GB   {' · '.join(details)}{more}")
-        lines.append(f"           {money(best.price)} listed · {_reference(config, best, references)}")
+        listed = f"{money(best.price)} listed · " if _adjusted(best) else ""
+        lines.append(f"           {listed}{_reference(config, best, references)}")
         lines.append(f"           {o['url']}")
     if not rows:
         lines.append("  none")

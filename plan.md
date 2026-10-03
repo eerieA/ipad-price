@@ -73,14 +73,13 @@ a grade we have never seen can't vanish without anyone noticing.
 
 ```text
 effective_price = listing_price
-                + pencil_cost          -- Pencil Pro, $169 (config/rules.yaml)
                 + source_adjustment    -- per source, default 0 (§3)
 ```
 
-`pencil_cost` is the same for every in-scope model now that the gate requires
-Pencil Pro, so it doesn't reorder anything. It stays because the number the
-digest shows should be what the purchase actually costs. It becomes a
-per-model value only if the gate ever loosens.
+The Pencil Pro ($169) is not added. It costs the same for every in-scope model
+now that the gate requires it, so adding it reordered nothing and only made
+every number differ from the price tag. It would come back as a per-model
+value only if the gate ever loosened to models with different Pencils.
 
 `source_adjustment` is mini-pc's device: a subjective dollar figure for how
 much recourse a vendor offers if the unit is bad (warranty length, restocking
@@ -124,8 +123,8 @@ not a new price, and is never used as a reference.
 
 `budget: 1000` in `rules.yaml` divides the digest into *within budget* and
 *over budget*. It is compared against the **listing price**, not the effective
-price: the $1,000 was stated about the iPad, and including the Pencil would
-quietly lower it to $831. Nothing is dropped for price. Over budget is the near-miss
+price: the $1,000 is money spent, and a `source_adjustment` is a preference
+priced in dollars, which shouldn't move a unit across the line. Nothing is dropped for price. Over budget is the near-miss
 section: a listing that clears every gate but fails a soft criterion lands
 there rather than disappearing, and budget is currently the only soft criterion.
 
@@ -393,23 +392,23 @@ Table-driven cases, each one a real title shape seen in the research:
 ## 7. Output: one email a day
 
 ```text
-📱 iPad Digest — Oct 2    (Pencil Pro $169 included in every price)
+📱 iPad Digest — Oct 2
 
   ── changed since yesterday ───────────────────────────────────
-  + NEW     Air 11" M3 256GB    Best Buy Mkt  Refurb Excellent   $849 ($1,018 eff.)
+  + NEW     Air 11" M3 256GB    Best Buy Mkt  Refurb Excellent   $849
   ↓ DROP    Pro 11" M4 256GB    Staples       new         $1,299 → $1,249
   − GONE    Pro 11" M4 512GB    Apple refurb  (sold out after 5h)
 
   ── within budget ($1,000) ────────────────────────────────────
-  $1,018  Air 11" M3 256GB    8GB   Best Buy Mkt · Refurb Excellent · 1yr
+    $849  Air 11" M3 256GB    8GB   Best Buy Mkt · Refurb Excellent · 1yr
                                      new ref: —
-  $1,107  Air 11" M4 128GB   12GB   Costco · new
-                                     new ref: $1,107 (Costco) — this is it
+    $938  Air 11" M4 128GB   12GB   Costco · new
+                                     new ref: $938 (Costco) — this is it
 
   ── over budget ───────────────────────────────────────────────
-  $1,418  Pro 11" M4 256GB    8GB   Staples · new (clearance)       +1 more
-                                     new ref: $1,418 (Staples) — beats Apple refurb cellular $1,688
-  $2,028  Pro 13" M4 512GB    8GB   Apple refurb · 1yr
+  $1,249  Pro 11" M4 256GB    8GB   Staples · new (clearance)       +1 more
+                                     new ref: $1,249 (Staples) — beats Apple refurb cellular $1,519
+  $1,859  Pro 13" M4 512GB    8GB   Apple refurb · 1yr
                                      new ref: —
 
   ── held for review (2) ───────────────────────────────────────
@@ -423,7 +422,7 @@ Table-driven cases, each one a real title shape seen in the research:
 
 (Figures are illustrative, not observed.)
 
-- **Changes first**, because they are why today's email differs from yesterday's. "Changed" means list price, stock or appearance — never effective price, which also moves when I edit `rules.yaml`. They are read from the log: each source's last poll before the 24-hour window against its latest, plus anything that appeared and vanished inside the window. mini-pc instead stored a snapshot of the last digest sent; that would be a second piece of state to commit beside the log, and its one advantage — a failed send's changes carry into the next digest — is worth little when a missing email is already loud.
+- **Changes first**, because they are why today's email differs from yesterday's. "Changed" means list price, stock or appearance — never effective price, which also moves when I edit a `source_adjustment`. They are read from the log: each source's last poll before the 24-hour window against its latest, plus anything that appeared and vanished inside the window. mini-pc instead stored a snapshot of the last digest sent; that would be a second piece of state to commit beside the log, and its one advantage — a failed send's changes carry into the next digest — is worth little when a missing email is already loud.
 - **One row per key**, cheapest listing only. Other listings for the same key appear as a count (`+2 more`), not rows.
 - **Held for review** is where the parser and the condition table admit what they don't know (§1, §6).
 - **Coverage** is computed from the observation files, never from a success flag, and per source, because the split runners fail independently. It counts 6-hour schedule slots with at least one poll, so a late cron run still lands in its slot and a manual extra run can't make up for a missed one.
@@ -514,7 +513,7 @@ ipad-price/
 │   ├── models.yaml         # catalog + out-of-scope models (§1, §6)
 │   ├── sources.yaml        # fetch paths, conditions accepted, source_adjustment (§3)
 │   ├── watch_urls.yaml     # seeded URLs: Costco, Walmart, Amazon ASINs
-│   ├── rules.yaml          # gates, budget, pencil_cost (§2)
+│   ├── rules.yaml          # gates, budget, new-reference window (§2)
 │   └── digest.yaml         # SMTP, change window, coverage thresholds (§7); no secrets
 ├── data/
 │   ├── observations/       # <source>/<date>.jsonl — committed, the history (§4)

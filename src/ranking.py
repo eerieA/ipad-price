@@ -129,7 +129,7 @@ def _foreign(config, o):
 
 def effective_price(config, o):
     adjustment = config.sources.get(o["source"], {}).get("source_adjustment", 0)
-    return o["price"] + config.rules["pencil_cost"] + adjustment
+    return o["price"] + adjustment
 
 
 def best_per_key(candidates):

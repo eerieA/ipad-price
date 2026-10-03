@@ -1,13 +1,9 @@
 # The decision rule (plan.md §1, §2). Edit by hand; nothing here is derived.
 
 # Splits the digest into "within budget" and "over budget"; drops nothing.
-# Compared against the listing price, not the effective price: the $1,000 was
-# stated about the iPad, and adding the Pencil would quietly lower it to $831.
+# Compared against the listing price, not the effective price: the $1,000 is
+# money spent, and a source_adjustment is a preference priced in dollars.
 budget: 1000
-
-# Apple Pencil Pro, added to every effective price so the number shown is what
-# the purchase costs. The same for every in-scope model, so it reorders nothing.
-pencil_cost: 169
 
 # The new-price reference is the cheapest new listing for a key over this many
 # days, across all sources (§2).
