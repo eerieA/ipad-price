@@ -1,0 +1,80 @@
+# Poll every 6 hours, send the digest once a day, commit the log back
+# (plan.md §4).
+#
+# The observation log is the only state, so each run commits its sources'
+# JSONL files. Every runner writes only its own sources' files, which is why
+# `git pull --rebase` before the push always merges cleanly (§4).
+
+name: poll
+
+on:
+  schedule:
+    # UTC, and best-effort: GitHub starts runs late under load and sometimes
+    # skips one. Coverage in the digest is what notices (src/coverage.py).
+    - cron: "0 3,9,21 * * *"   # poll only
+    - cron: "0 15 * * *"       # poll, then the digest: 8:00 Pacific (§4)
+  workflow_dispatch:
+    inputs:
+      digest:
+        description: "Send the digest after polling"
+        type: boolean
+        default: false
+        # A checkbox rather than a temporary edit to the schedule: proving the
+        # send path from a runner (Gmail accepting a login from GitHub's IPs)
+        # is the one thing a local run can't test (§9, Phase 2).
+
+# One run at a time, so two runs never race to push the log.
+concurrency:
+  group: poll
+  cancel-in-progress: false
+
+jobs:
+  poll:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write          # to commit data/observations
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+
+      - run: pip install -r requirements.txt
+
+      # The Actions half of plan §3's placement. Desktop sources run from Task
+      # Scheduler (Phase 3), not here. Keeps going on failure: a blocked source
+      # is skipped and shown in coverage, and must not cancel the digest (§8).
+      - name: Poll
+        id: poll
+        continue-on-error: true
+        run: python src/poll.py --sources apple_refurb apple_new
+
+      # Runs whatever the poll did: a failed poll shows up in the digest's
+      # coverage block, and a missing email is the louder signal (§4).
+      - name: Digest
+        if: github.event.schedule == '0 15 * * *' || inputs.digest
+        env:
+          IPAD_SMTP_USER: ${{ secrets.IPAD_SMTP_USER }}
+          IPAD_SMTP_PASS: ${{ secrets.IPAD_SMTP_PASS }}
+          IPAD_DIGEST_TO: ${{ secrets.IPAD_DIGEST_TO }}
+        run: python src/digest.py
+
+      # Even when the digest failed: the observations are the history, and an
+      # observation can't be backfilled (§4).
+      - name: Commit the log
+        if: always()
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/observations
+          git diff --quiet --cached || git commit -m "poll: $(date -u +%Y-%m-%dT%H:%MZ)"
+          git pull --rebase
+          git push
+
+      - name: Fail the run if the poll failed
+        if: steps.poll.outcome == 'failure'
+        run: |
+          echo "A source failed to poll; see the Poll step. The log was still"
+          echo "committed and the digest (if due) still sent."
+          exit 1

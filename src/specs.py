@@ -41,6 +41,7 @@ class Catalog:
     by_part: dict         # part core (part number minus its first letter) → id
     by_model_number: dict  # A-number → (id, connectivity or None)
     sizes: frozenset      # every size a title may state
+    non_canadian: frozenset  # A-numbers that fail the Canadian gate (§1)
 
     @property
     def in_scope(self):
@@ -95,7 +96,9 @@ def load_catalog(path):
                 index(by_model_number, number, (id_, connectivity), "model number")
 
     sizes = frozenset(s for m in models.values() if m.size for s in (m.size, *m.size_aliases))
-    return Catalog(models, by_part, by_model_number, sizes)
+    non_canadian = frozenset(n for entry in data["models"].values()
+                             for n in entry.get("model_numbers", {}).get("non_canadian", []))
+    return Catalog(models, by_part, by_model_number, sizes, non_canadian)
 
 
 def _model(id_, in_scope, entry):

@@ -1,0 +1,26 @@
+# The daily email (plan.md §7). Committed, like every config/*.yaml, so it
+# holds no secrets and no addresses. Those come from the environment:
+#
+#   IPAD_SMTP_USER   the Gmail address that sends
+#   IPAD_SMTP_PASS   a Google App Password for it, not the account password
+#   IPAD_DIGEST_TO   where the digest goes
+#
+# In Actions they are repository secrets (.github/workflows/poll.yml). Locally,
+# copy .env.example to .env (git-ignored) and fill it in.
+
+subject: "iPad Digest"     # the date is appended at send time
+
+smtp:
+  host: smtp.gmail.com
+  port: 587                # STARTTLS
+
+# "Changed since yesterday" (§7) is read from the observation log over this
+# window, not from a record of the last digest sent.
+changes_window_hours: 24
+
+coverage:
+  days: 7                  # the window the coverage line counts over
+  polls_per_day: 4         # the 6-hourly schedule (§4)
+  # A source whose last poll is older than this gets a warning line: its rows
+  # in the digest are that old. 18h is three missed polls.
+  stale_after_hours: 18

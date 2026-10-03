@@ -423,10 +423,10 @@ Table-driven cases, each one a real title shape seen in the research:
 
 (Figures are illustrative, not observed.)
 
-- **Changes first**, because they are why today's email differs from yesterday's. "Changed" means list price, stock or appearance — never effective price, which also moves when I edit `rules.yaml`.
+- **Changes first**, because they are why today's email differs from yesterday's. "Changed" means list price, stock or appearance — never effective price, which also moves when I edit `rules.yaml`. They are read from the log: each source's last poll before the 24-hour window against its latest, plus anything that appeared and vanished inside the window. mini-pc instead stored a snapshot of the last digest sent; that would be a second piece of state to commit beside the log, and its one advantage — a failed send's changes carry into the next digest — is worth little when a missing email is already loud.
 - **One row per key**, cheapest listing only. Other listings for the same key appear as a count (`+2 more`), not rows.
 - **Held for review** is where the parser and the condition table admit what they don't know (§1, §6).
-- **Coverage** is computed from the observation files, never from a success flag, and per source, because the split runners fail independently.
+- **Coverage** is computed from the observation files, never from a success flag, and per source, because the split runners fail independently. It counts 6-hour schedule slots with at least one poll, so a late cron run still lands in its slot and a manual extra run can't make up for a missed one.
 
 ---
 
@@ -514,7 +514,8 @@ ipad-price/
 │   ├── models.yaml         # catalog + out-of-scope models (§1, §6)
 │   ├── sources.yaml        # fetch paths, conditions accepted, source_adjustment (§3)
 │   ├── watch_urls.yaml     # seeded URLs: Costco, Walmart, Amazon ASINs
-│   └── rules.yaml          # gates, budget, pencil_cost (§2)
+│   ├── rules.yaml          # gates, budget, pencil_cost (§2)
+│   └── digest.yaml         # SMTP, change window, coverage thresholds (§7); no secrets
 ├── data/
 │   ├── observations/       # <source>/<date>.jsonl — committed, the history (§4)
 │   └── raw/                # git-ignored fetch bytes (§4)
@@ -526,11 +527,14 @@ ipad-price/
 │   ├── ranking.py          # gates, effective price, per-key cheapest (§2)
 │   ├── report.py           # console (Phase 1)
 │   ├── digest.py           # email (Phase 2)
+│   ├── changes.py          # changed since yesterday, from the log (§7)
 │   ├── coverage.py         # per-source coverage from the log (§7, §8)
 │   └── dotenv_lite.py
 ├── scripts/                # probe.py (Phase 0), install-task.ps1 (Phase 3)
 ├── .github/workflows/      # probe.yml (Phase 0), poll.yml (Phase 2)
-└── tests/test_specs.py     # the suite that matters
+└── tests/
+    ├── test_specs.py       # the suite that matters
+    └── test_ranking.py     # gates, price, changes, coverage
 ```
 
 No Docker: the Actions runner and the desktop both run plain Python. Dependencies are `requests`, `pyyaml` and `curl_cffi` (Staples and Amazon, which pass from the desktop only with a browser TLS fingerprint).

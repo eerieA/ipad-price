@@ -23,13 +23,24 @@
 #
 # Which runner and HTTP client each source needs is Phase 0's result, recorded
 # in plan §3's "Runs on" column. `client:` is what src/poll.py fetches with; a
-# source gets one when its fetcher lands. scripts/probe.py ignores it and tries
-# both clients.
+# source gets one when its fetcher lands, and from then on coverage expects it
+# to be polled. scripts/probe.py ignores it and tries both clients.
+#
+# A source with a fetcher also carries what the digest needs:
+#   short              its name in a digest row
+#   source_adjustment  dollars added to its effective price for weaker recourse
+#                      (§2). 0 unless a reason is stated beside it.
+#   conditions         `condition_raw` labels on each side of plan §1's
+#                      condition table. A label on neither side is held for
+#                      review, never dropped (§1).
 
 sources:
   - id: apple_refurb
     name: Apple CA — Certified Refurbished
     client: requests
+    short: Apple refurb
+    source_adjustment: 0
+    conditions: {accepted: ["Apple Certified Refurbished"], excluded: []}
     challenge: []
     steps:
       - url: "https://www.apple.com/ca/shop/refurbished/ipad"
@@ -38,6 +49,9 @@ sources:
   - id: apple_new
     name: Apple CA — new
     client: requests
+    short: Apple new
+    source_adjustment: 0
+    conditions: {accepted: ["new"], excluded: []}
     challenge: []
     steps:
       - url: "https://www.apple.com/ca/shop/buy-ipad/ipad-pro"
