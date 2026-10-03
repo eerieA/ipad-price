@@ -1,6 +1,10 @@
 # graft's local graph cache — regenerable, not committed (run `graft build`).
 /graft/
 
+# Fetch responses, kept so a parser bug can be fixed against old bytes (plan.md
+# §4). data/observations/ is the committed history; this is not.
+/data/raw/
+
 __pycache__/
 .pytest_cache/
 

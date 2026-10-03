@@ -1,0 +1,197 @@
+# The model catalog (plan.md §1, §6): every iPad a listing can resolve to.
+#
+# `models` are in scope — Pro or Air, Apple Pencil Pro. `out_of_scope` are
+# listed so they resolve to *known, excluded* and drop quietly rather than
+# surfacing as *unresolved*, which is a review item (§6). A listing that
+# matches neither is unresolved: that is how a new launch shows up (§8).
+#
+# ── How a title is matched ───────────────────────────────────────────────────
+# specs.py reads facts from a title — family, size, chip, generation, year —
+# and keeps every model none of them contradicts. A model that declares no
+# value for a fact accepts any value of it. The listing resolves only when
+# every surviving candidate agrees: one in-scope model, or only out-of-scope
+# ones. Anything else is unresolved; nothing is ever defaulted (§6).
+#
+# `size` is the canonical size in the key; `size_aliases` are other sizes a
+# title may state for the same model (the 13" Air measures 12.9" diagonally).
+#
+# `generations` lists every number retailers use for the model, because the
+# numbering schemes disagree:
+#   11" Pro  Apple numbers 1–4 by size (11" M2 = 4th). Best Buy continues that
+#            count (M4 = 5th, M5 = 6th). The iPad Pro line as a whole counts
+#            M1 = 5th, M2 = 6th, M4 = 7th, M5 = 8th. Every number from 3 to 6
+#            therefore names two 11" models, and a title carrying only one of
+#            those is ambiguous whenever the two straddle the scope boundary.
+#   12.9/13" Pro  one count throughout: M1 = 5th, M2 = 6th, M4 = 7th, M5 = 8th.
+#   Air      Apple numbered up to the 5th (M1). Retailers' "6th/7th/8th" for
+#            M2/M3/M4 is unofficial (§6), so every in-scope Air lists all
+#            three: the number tells a post-M1 Air from an older one and
+#            nothing more. Best Buy's own titles are consistent (6 = M2,
+#            7 = M3, 8 = M4); that is one retailer, not a convention.
+#
+# `parts` are Apple part numbers without the region suffix, as observed on
+# Apple CA pages. A refurbished part swaps the leading M for F (FVW33 is the
+# refurb MVW33), so lookup ignores the first letter. A part identifies the
+# model; storage and connectivity still come from the title. Listing each
+# part's full configuration would be ~120 hand-kept entries for a fact every
+# Apple title already states.
+#
+# `model_numbers` are from Apple's "Identify your iPad model" page
+# (support.apple.com/108043). `non_canadian` numbers are China-mainland or
+# mmWave (US) variants: they still resolve, and fail the Canadian gate (§1).
+
+models:
+  ipad_pro_11_m4:
+    family: pro
+    chip: M4
+    size: 11
+    years: [2024]
+    generations: [5, 7]
+    ram_gb: {default: 8, 1024: 16, 2048: 16}
+    model_numbers: {wifi: [A2836], cellular: [A2837], non_canadian: [A3006]}
+    # Apple CA refurb grid. Not sold new in CA any more (§1).
+    parts: [FVVF3, FVVG3, FVW13, FVW33, FVW43, FWR63, FWR73, FWRP3]
+
+  ipad_pro_13_m4:
+    family: pro
+    chip: M4
+    size: 13
+    years: [2024]
+    generations: [7]
+    ram_gb: {default: 8, 1024: 16, 2048: 16}
+    model_numbers: {wifi: [A2925], cellular: [A2926], non_canadian: [A3007]}
+    # Apple CA refurb grid.
+    parts: [FVX53, FVXR3, FWRF3, FWRG3]
+
+  ipad_pro_11_m5:
+    family: pro
+    chip: M5
+    size: 11
+    years: [2025]
+    generations: [6, 8]
+    ram_gb: {default: 12, 1024: 16, 2048: 16}
+    model_numbers: {wifi: [A3357], cellular: [A3358], non_canadian: [A3359]}
+    # Apple CA store, /ca/shop/buy-ipad/ipad-pro: the full lineup.
+    parts: [MDWK4, MDWL4, MDWM4, MDWN4, MDWP4, MDWQ4, MDWR4, MDWT4, MDWU4,
+            MDWV4, MDWW4, MDWX4, ME2N4, ME2P4, ME2Q4, ME2T4, ME2U4, ME2V4,
+            ME2W4, ME2X4, ME2Y4, ME6A4, ME6C4, ME6D4]
+
+  ipad_pro_13_m5:
+    family: pro
+    chip: M5
+    size: 13
+    years: [2025]
+    generations: [8]
+    ram_gb: {default: 12, 1024: 16, 2048: 16}
+    model_numbers: {wifi: [A3360], cellular: [A3361], non_canadian: [A3362]}
+    # Apple CA store, /ca/shop/buy-ipad/ipad-pro: the full lineup.
+    parts: [MDYJ4, MDYK4, MDYL4, MDYM4, MDYN4, MDYP4, MDYQ4, MDYR4, MDYT4,
+            MDYU4, MDYV4, MDYW4, ME7W4, ME7X4, ME7Y4, ME8C4, ME8D4, ME8F4,
+            ME8G4, ME8H4, ME8J4, ME8K4, ME8M4, ME8N4]
+
+  ipad_air_11_m2:
+    family: air
+    chip: M2
+    size: 11
+    years: [2024]
+    generations: [6, 7, 8]
+    ram_gb: {default: 8}
+    model_numbers: {wifi: [A2902], cellular: [A2903], non_canadian: [A2904]}
+    parts: []
+
+  ipad_air_13_m2:
+    family: air
+    chip: M2
+    size: 13
+    size_aliases: [12.9]
+    years: [2024]
+    generations: [6, 7, 8]
+    ram_gb: {default: 8}
+    model_numbers: {wifi: [A2898], cellular: [A2899], non_canadian: [A2900]}
+    parts: []
+
+  ipad_air_11_m3:
+    family: air
+    chip: M3
+    size: 11
+    years: [2025]
+    generations: [6, 7, 8]
+    ram_gb: {default: 8}
+    model_numbers: {wifi: [A3266], cellular: [A3267], non_canadian: [A3270]}
+    parts: []
+
+  ipad_air_13_m3:
+    family: air
+    chip: M3
+    size: 13
+    size_aliases: [12.9]
+    years: [2025]
+    generations: [6, 7, 8]
+    ram_gb: {default: 8}
+    model_numbers: {wifi: [A3268], cellular: [A3269], non_canadian: [A3271]}
+    parts: []
+
+  ipad_air_11_m4:
+    family: air
+    chip: M4
+    size: 11
+    years: [2026]
+    generations: [6, 7, 8]
+    ram_gb: {default: 12}
+    model_numbers: {wifi: [A3459], cellular: [A3460], non_canadian: [A3463]}
+    # Apple CA store, /ca/shop/buy-ipad/ipad-air: the full lineup.
+    parts: [MH304, MH314, MH334, MH344, MH354, MH364, MH374, MH394, MH3A4,
+            MH3C4, MH3D4, MH3E4, MH3G4, MH3H4, MH3J4, MH3K4, MH784, MH794,
+            MH7A4, MH7C4, MH7D4, MH7E4, MH7F4, MH7G4, MH7H4, MH7J4, MH7K4,
+            MH7L4, MH7M4, MH7N4, MH7P4, MH7Q4]
+
+  ipad_air_13_m4:
+    family: air
+    chip: M4
+    size: 13
+    size_aliases: [12.9]
+    years: [2026]
+    generations: [6, 7, 8]
+    ram_gb: {default: 12}
+    model_numbers: {wifi: [A3461], cellular: [A3462], non_canadian: [A3464]}
+    # Apple CA store, /ca/shop/buy-ipad/ipad-air: the full lineup.
+    parts: [MH5N4, MH5P4, MH5Q4, MH5T4, MH5U4, MH5V4, MH5W4, MH5X4, MH5Y4,
+            MH604, MH614, MH624, MH634, MH644, MH654, MH9D4, MH9E4, MH9F4,
+            MH9G4, MH9H4, MH9J4, MH9K4, MH9L4, MH9M4, MH9N4, MH9P4, MH9Q4,
+            MH9R4, MH9T4, MH9U4, MH9V4, MHDK4]
+
+# Resolve and dismiss quietly (§1). Same matching fields as above; model
+# numbers here are one flat list, since no gate looks past "excluded".
+out_of_scope:
+  ipad_pro_11_m2:   {family: pro, chip: M2, size: 11, years: [2022], generations: [4, 6],
+                     model_numbers: [A2759, A2761, A2435, A2762], reason: "Pencil 2 only"}
+  ipad_pro_11_m1:   {family: pro, chip: M1, size: 11, years: [2021], generations: [3, 5],
+                     model_numbers: [A2377, A2459, A2301, A2460], reason: "Pencil 2 only"}
+  ipad_pro_11_a12z: {family: pro, chip: A12Z, size: 11, years: [2020], generations: [2, 4],
+                     model_numbers: [A2228, A2068, A2230, A2231], reason: "Pencil 2 only"}
+  ipad_pro_11_a12x: {family: pro, chip: A12X, size: 11, years: [2018], generations: [1, 3],
+                     model_numbers: [A1980, A2013, A1934, A1979], reason: "Pencil 2 only"}
+  ipad_pro_12_9_m2: {family: pro, chip: M2, size: 12.9, years: [2022], generations: [6],
+                     model_numbers: [A2436, A2437, A2764, A2766], reason: "Pencil 2 only"}
+  ipad_pro_12_9_m1: {family: pro, chip: M1, size: 12.9, years: [2021], generations: [5],
+                     model_numbers: [A2378, A2461, A2379, A2462], reason: "Pencil 2 only"}
+  ipad_pro_12_9_a12z: {family: pro, chip: A12Z, size: 12.9, years: [2020], generations: [4],
+                     model_numbers: [A2229, A2069, A2232, A2233], reason: "Pencil 2 only"}
+  ipad_pro_12_9_a12x: {family: pro, chip: A12X, size: 12.9, years: [2018], generations: [3],
+                     model_numbers: [A1876, A2014, A1895, A1983], reason: "Pencil 2 only"}
+  ipad_pro_12_9_a10x: {family: pro, chip: A10X, size: 12.9, years: [2017], generations: [2],
+                     model_numbers: [A1670, A1671, A1821], reason: "1st-gen Pencil only"}
+  ipad_pro_10_5_a10x: {family: pro, chip: A10X, size: 10.5, years: [2017],
+                     model_numbers: [A1701, A1709, A1852], reason: "1st-gen Pencil only"}
+  ipad_air_5_m1:    {family: air, chip: M1, size: 10.9, years: [2022], generations: [5],
+                     model_numbers: [A2588, A2589, A2591], reason: "M1, Pencil 2 only"}
+  ipad_air_4_a14:   {family: air, chip: A14, size: 10.9, years: [2020], generations: [4],
+                     model_numbers: [A2316, A2324, A2325, A2072], reason: "Pencil 2 only"}
+  ipad_air_3_a12:   {family: air, chip: A12, size: 10.5, years: [2019], generations: [3],
+                     model_numbers: [A2152, A2123, A2153, A2154], reason: "1st-gen Pencil only"}
+  # Whole families. The mini (A17 Pro) does take the Pencil Pro; it is out on
+  # the project's Pro-or-Air scope, not on the Pencil gate.
+  ipad_mini:        {family: mini, reason: "not Pro or Air",
+                     model_numbers: [A2993, A2995, A2996, A2567, A2568, A2569]}
+  ipad_base:        {family: ipad, reason: "base iPad: no Pencil Pro support",
+                     model_numbers: [A3354, A3355, A3356, A2696, A2757, A2777, A3162]}

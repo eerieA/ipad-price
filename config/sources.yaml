@@ -22,12 +22,14 @@
 #                  from the search results instead
 #
 # Which runner and HTTP client each source needs is Phase 0's result, recorded
-# in plan §3's "Runs on" column. scripts/probe.py ignores it and tries both
-# clients; a `client:` key lands here in Phase 3 with the fetcher that reads it.
+# in plan §3's "Runs on" column. `client:` is what src/poll.py fetches with; a
+# source gets one when its fetcher lands. scripts/probe.py ignores it and tries
+# both clients.
 
 sources:
   - id: apple_refurb
     name: Apple CA — Certified Refurbished
+    client: requests
     challenge: []
     steps:
       - url: "https://www.apple.com/ca/shop/refurbished/ipad"
@@ -35,6 +37,7 @@ sources:
 
   - id: apple_new
     name: Apple CA — new
+    client: requests
     challenge: []
     steps:
       - url: "https://www.apple.com/ca/shop/buy-ipad/ipad-pro"
