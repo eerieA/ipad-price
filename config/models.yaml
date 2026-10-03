@@ -210,6 +210,12 @@ out_of_scope:
                      model_numbers: [A2133, A2124, A2126, A2125], reason: "1st-gen Pencil only"}
   ipad_mini_4_a8:   {family: mini, chip: A8, size: 7.9, years: [2015], generations: [4],
                      model_numbers: [A1538, A1550], reason: "no Pencil support"}
+  ipad_mini_3_a7:   {family: mini, chip: A7, size: 7.9, years: [2014], generations: [3],
+                     model_numbers: [A1599, A1600, A1601], reason: "no Pencil support"}
+  ipad_mini_2_a7:   {family: mini, chip: A7, size: 7.9, years: [2013], generations: [2],
+                     model_numbers: [A1489, A1490, A1491], reason: "no Pencil support"}
+  ipad_mini_1_a5:   {family: mini, chip: A5, size: 7.9, years: [2012], generations: [1],
+                     model_numbers: [A1432, A1454, A1455], reason: "no Pencil support"}
   # The whole family: no base iPad takes the Pencil Pro.
   ipad_base:        {family: ipad, reason: "base iPad: no Pencil Pro support",
                      model_numbers: [A3354, A3355, A3356, A2696, A2757, A2777, A3162]}

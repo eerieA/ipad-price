@@ -37,6 +37,16 @@ RESOLVED = [
     ("iPad mini Wi‑Fi + Cellular 256GB - Blue", "MXPW3CL/A", "ipad_mini_a17pro", 256, "cellular"),
     # the refurb mini: unlisted part, but the title names the chip
     ("Refurbished iPad mini (A17 Pro) Wi-Fi 128GB - Purple", "FXN93CL/A", "ipad_mini_a17pro", 128, "wifi"),
+    # Best Buy minis
+    ('Apple iPad mini 8.3" 256GB with Wi-Fi (7th Generation) - Space Grey',
+     None, "ipad_mini_a17pro", 256, "wifi"),
+    ("Refurbished (Excellent) - Apple iPad mini 8.3'' 512GB with Wi-Fi & 5G (7th Generation) - Starlight",
+     None, "ipad_mini_a17pro", 512, "cellular"),
+    # "mini 7": a generation straight after the family
+    ("(Refurbished Excellent) Apple iPad Mini 7 (2024) 128GB - Purple (WiFi)",
+     None, "ipad_mini_a17pro", 128, "wifi"),
+    # constructed: the "8" of "mini 8.3" is a size, not a generation
+    ('Apple iPad mini 8.3" (A17 Pro) 256GB Wi-Fi', None, "ipad_mini_a17pro", 256, "wifi"),
     # constructed: the new-stock form of an observed refurb part (F → M)
     ("11-inch iPad Pro Wi-Fi + Cellular 512GB", "MVW33CL/A", "ipad_pro_11_m4", 512, "cellular"),
     # Best Buy
@@ -117,6 +127,13 @@ OUT_OF_SCOPE = [
     ('Apple iPad Pro 12.9" 256GB Wi-Fi Space Gray', None),
     # constructed: the mini before the A17 Pro takes only the Pencil 2
     ("Apple iPad mini (6th generation) 64GB Wi-Fi Purple", None),
+    # Best Buy: older minis numbered straight after the family
+    ("Open Box-Apple iPad Mini 6 64GB Purple Wi-Fi 3J366V/A (Latest Model)", None),
+    ("Refurbished (Excellent) Apple iPad Mini 5 (Cellular+Wifi) - 64GB - Silver", None),
+    ("Refurbished (Good) - Apple iPad mini 4 128GB With Wi-Fi - Space Grey", None),
+    ("Refurbished (Good) - Apple iPad Mini 2 16GB Space Gray Wi-Fi Only", None),
+    # the A-number alone places it
+    ("Refurbished (Good) - Apple iPad mini 2 32GB - WiFi (A1489) Silver", None),
     # constructed: base iPads
     ("Apple iPad 11-inch (A16) Wi-Fi 128GB - Blue", None),
     ("Apple iPad (10th generation) 64GB Wi-Fi", None),

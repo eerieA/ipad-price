@@ -171,7 +171,7 @@ def _match_title(catalog, text):
         "size": (_single("size", SIZE_RE, text, lambda m: _size(m, catalog.sizes))
                  or _single("size", BARE_SIZE_RE, text, lambda m: _size(m, catalog.sizes))),
         "chip": _single("chip", CHIP_RE, text, lambda m: m.group(1).upper()),
-        "generation": _single("generation", GENERATION_RE, text, lambda m: int(m.group(1))),
+        "generation": _single("generation", GENERATION_RE, text, lambda m: int(m.group(1) or m.group(2))),
         "year": _single("year", YEAR_RE, text, lambda m: int(m.group(1))),
     }
     candidates = [m for m in catalog.models.values() if family == m.family and _consistent(m, facts)]
@@ -216,8 +216,10 @@ SIZE_RE = re.compile(r"(?<![\d.,])(\d{1,2}(?:[.,]\d)?)\s*-?\s*(?:inch(?:es)?\b|i
 # "iPad Pro 11 2024": a size straight after the family, with no unit
 BARE_SIZE_RE = re.compile(r"\bipad (?:pro|air)\s+(\d{1,2}(?:\.\d)?)(?![\d.]|\s*(?:gb|go|tb|to)\b)")
 CHIP_RE = re.compile(r"\b(m[1-9]|a1[0-9][xz]?)\b")
-# "4th Generation", "2nd Gen.", "( 5th Generation )", "5e génération"
-GENERATION_RE = re.compile(r"\b(\d{1,2})\s*(?:st|nd|rd|th|e|ème)\s*g[ée]n")
+# "4th Generation", "2nd Gen.", "( 5th Generation )", "5e génération", and
+# "iPad mini 4", the mini's own naming. Only the mini: "iPad Pro 11" is a size,
+# and Air numbers past 5 are unofficial (§6). The lookahead keeps "mini 8.3" a size.
+GENERATION_RE = re.compile(r"\b(\d{1,2})\s*(?:st|nd|rd|th|e|ème)\s*g[ée]n|\bipad mini (\d)\b(?![.,\d])")
 YEAR_RE = re.compile(r"\b(20[12]\d)\b")
 # "1TB", "256 Go", and Best Buy's "1TBGB"
 STORAGE_RE = re.compile(r"\b(\d{1,4})\s*(gb|go|tb|to)(?:gb)?\b")

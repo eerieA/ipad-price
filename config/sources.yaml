@@ -74,6 +74,8 @@ sources:
         expect: '"products":[{'
       - url: "https://www.bestbuy.ca/api/v2/json/search?categoryid=17154972&lang=en-CA&pageSize=100"
         expect: '"products":[{'
+      - url: "https://www.bestbuy.ca/api/v2/json/search?categoryid=17154974&lang=en-CA&pageSize=100"
+        expect: '"products":[{'
       - url: "https://www.bestbuy.ca/api/v2/json/product/{sku}?lang=en-CA"
         expect: '"sku":'
       - url: "https://www.bestbuy.ca/api/offers/v1/products/{sku}/offers"
