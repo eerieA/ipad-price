@@ -70,7 +70,7 @@ def requester(source, stamp):
     numbers = count(1)
 
     def get(url, expect):
-        number = next(numbers)
+        number = get.requests = next(numbers)
         if number > 1:
             time.sleep(REQUEST_DELAY_S)
         response = session.get(url, timeout=30)
@@ -83,6 +83,7 @@ def requester(source, stamp):
                 f"challenge markers {challenges or 'none'}, "
                 f"payload marker {'present' if expect.encode() in body else 'missing'}")
         return body
+    get.requests = 0
     return get
 
 
@@ -113,7 +114,7 @@ def poll(source, now, catalog):
     records = EXTRACTORS[source["id"]](source, get, catalog)
     if not records:
         raise SourceFailed("0 listings — a layout change, not an empty store (§8)")
-    return append_observations(source["id"], records, observed_at), len(records)
+    return append_observations(source["id"], records, observed_at), len(records), get.requests
 
 
 def main():
@@ -126,12 +127,20 @@ def main():
     catalog = specs.load_catalog(ROOT / "config" / "models.yaml")
     failed = False
     for source_id in args.sources:
+        # Requests and seconds on every line: the Actions logs are then the
+        # baseline a slowdown is noticed against. A bot defense that stalls
+        # rather than blocks (Akamai held Best Buy's `requests` client ~10 s a
+        # request, §3) fails nothing and shows only here. The seconds include
+        # REQUEST_DELAY_S between requests.
+        started = time.monotonic()
         try:
-            path, listings = poll(sources[source_id], now, catalog)
-            print(f"{source_id}: {listings} listings → {path.relative_to(ROOT)}")
+            path, listings, requests_made = poll(sources[source_id], now, catalog)
+            print(f"{source_id}: {listings} listings, {requests_made} requests in "
+                  f"{time.monotonic() - started:.0f} s → {path.relative_to(ROOT)}")
         except Exception as error:  # one source's failure never stops the rest (§8)
             failed = True
-            print(f"{source_id}: FAILED — {type(error).__name__}: {error}", file=sys.stderr)
+            print(f"{source_id}: FAILED after {time.monotonic() - started:.0f} s — "
+                  f"{type(error).__name__}: {error}", file=sys.stderr)
     sys.exit(1 if failed else 0)
 
 

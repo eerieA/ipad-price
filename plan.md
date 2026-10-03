@@ -452,6 +452,7 @@ iPads today". Mitigations:
 
 - **An empty or challenge response is a failure, never zero listings.** Each fetcher checks for its source's challenge markers (`bm-verify`, `/blocked`, `px-captcha`, `Just a moment`) and for zero products from a source that previously returned some. Shopify answers a wrong collection handle with `200 {"products": []}` — mini-pc learned this — so Orchard and Staples need the same check.
 - A blocked source is logged, skipped, and shown in coverage. It never fails the run or blocks the digest.
+- **A defense that stalls rather than blocks fails nothing.** Akamai answered Best Buy's plain `requests` client in ~10 s a request against ~0.2 s with `curl_cffi` (§3): every poll would still pass, just slowly. So each source's poll line prints its request count and seconds, and the Actions logs (kept 90 days) are the baseline a slowdown is compared against. Nothing checks it automatically.
 - Politeness: 4 polls a day, one request at a time. Most sources take a handful of requests a poll; Best Buy takes ~500, spaced 0.5 s apart, because its search shows neither part number, stock nor every seller (§3).
 
 **Parser misresolution** — an M2 Air read as M3, or a 12.9" Pro read as an Air. Mitigated by the resolution order, by never defaulting, and by the test table (§6).
