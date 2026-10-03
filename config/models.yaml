@@ -1,6 +1,6 @@
 # The model catalog (plan.md §1, §6): every iPad a listing can resolve to.
 #
-# `models` are in scope — Pro or Air, Apple Pencil Pro. `out_of_scope` are
+# `models` are in scope: every iPad that takes the Apple Pencil Pro (§1). `out_of_scope` are
 # listed so they resolve to *known, excluded* and drop quietly rather than
 # surfacing as *unresolved*, which is a review item (§6). A listing that
 # matches neither is unresolved: that is how a new launch shows up (§8).
@@ -160,6 +160,21 @@ models:
             MH9G4, MH9H4, MH9J4, MH9K4, MH9L4, MH9M4, MH9N4, MH9P4, MH9Q4,
             MH9R4, MH9T4, MH9U4, MH9V4, MHDK4]
 
+  # Apple names it "iPad mini (A17 Pro)"; retailers call it the 7th generation.
+  ipad_mini_a17pro:
+    family: mini
+    chip: A17
+    size: 8.3
+    years: [2024]
+    generations: [7]
+    ram_gb: {default: 8}
+    model_numbers: {wifi: [A2993], cellular: [A2995], non_canadian: [A2996]}
+    # Apple CA store, /ca/shop/buy-ipad/ipad-mini: the full lineup. Its refurbs
+    # (FXN93 …) are these with F for M.
+    parts: [MXN63, MXN73, MXN83, MXN93, MXNA3, MXNC3, MXND3, MXNE3, MXPN3,
+            MXPP3, MXPQ3, MXPR3, MXPT3, MXPW3, MXPX3, MXPY3, MYGY3, MYH13,
+            MYH23, MYH33, MYHC3, MYHD3, MYHE3, MYHF3]
+
 # Resolve and dismiss quietly (§1). Same matching fields as above; model
 # numbers here are one flat list, since no gate looks past "excluded".
 out_of_scope:
@@ -189,9 +204,12 @@ out_of_scope:
                      model_numbers: [A2316, A2324, A2325, A2072], reason: "Pencil 2 only"}
   ipad_air_3_a12:   {family: air, chip: A12, size: 10.5, years: [2019], generations: [3],
                      model_numbers: [A2152, A2123, A2153, A2154], reason: "1st-gen Pencil only"}
-  # Whole families. The mini (A17 Pro) does take the Pencil Pro; it is out on
-  # the project's Pro-or-Air scope, not on the Pencil gate.
-  ipad_mini:        {family: mini, reason: "not Pro or Air",
-                     model_numbers: [A2993, A2995, A2996, A2567, A2568, A2569]}
+  ipad_mini_6_a15:  {family: mini, chip: A15, size: 8.3, years: [2021], generations: [6],
+                     model_numbers: [A2567, A2568, A2569], reason: "Pencil 2 only"}
+  ipad_mini_5_a12:  {family: mini, chip: A12, size: 7.9, years: [2019], generations: [5],
+                     model_numbers: [A2133, A2124, A2126, A2125], reason: "1st-gen Pencil only"}
+  ipad_mini_4_a8:   {family: mini, chip: A8, size: 7.9, years: [2015], generations: [4],
+                     model_numbers: [A1538, A1550], reason: "no Pencil support"}
+  # The whole family: no base iPad takes the Pencil Pro.
   ipad_base:        {family: ipad, reason: "base iPad: no Pencil Pro support",
                      model_numbers: [A3354, A3355, A3356, A2696, A2757, A2777, A3162]}

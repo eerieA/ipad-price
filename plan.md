@@ -34,6 +34,11 @@ superset.)
 | iPad Air (M2, 2024) | 11", 13" | M2 | 8 GB | No |
 | iPad Air (M3, 2025) | 11", 13" | M3 | 8 GB | No |
 | iPad Air (M4, 2026) | 11", 13" | M4 | 12 GB | Yes |
+| iPad mini (A17 Pro, 2024) | 8.3" | A17 Pro | 8 GB | Yes |
+
+The mini is in because it passes the gate. Its 8.3" screen is a trade-off
+I accept for drawing, not a reason to exclude it; the digest shows the
+size beside the price, and the judgement stays with the reader (§2).
 
 RAM is a derived field, never parsed: titles don't state it, and on the Pros it
 follows storage. It matters because Procreate's layer limit scales with it.
@@ -142,7 +147,7 @@ on that runner.
 | Source | Sells | Fetch path | Bot defense seen | Runs on |
 | --- | --- | --- | --- | --- |
 | **Apple CA** — refurb | refurb | `/ca/shop/refurbished/ipad`, inline JSON `window.REFURB_GRID_BOOTSTRAP` (tiles with `partNumber`, `price.currentPrice.raw_amount`, `filters.dimensions`) | none | Actions, `requests` |
-| **Apple CA** — new | new | `/ca/shop/buy-ipad/ipad-pro` and `/ipad-air`, inline analytics JSON (`products[].partNumber`, `price.fullPrice`) | none | Actions, `requests` |
+| **Apple CA** — new | new | `/ca/shop/buy-ipad/ipad-pro`, `/ipad-air` and `/ipad-mini`, inline analytics JSON (`products[].partNumber`, `price.fullPrice`) | none | Actions, `requests` |
 | **Orchard** (getorchard.com) | refurb | Shopify `/collections/refurbished-ipad-pros/products.json`, `/collections/refurbished-tablets/products.json`; condition is a variant option | none | Actions, `requests` |
 | **Costco** | new | hand-listed product URLs → JSON-LD `offers.price` | none seen | Actions, `requests` |
 | **Best Buy** | new, open box, marketplace refurb | JSON API: `api/v2/json/search?categoryid=17154970` (Pro) / `17154972` (Air); `api/v2/json/product/{sku}` for `specs["Product Condition"]`; `api/offers/v1/products/{sku}/offers` for every seller | Akamai — HTML pages 403 even from residential; JSON passed | Actions, `requests` |
@@ -298,14 +303,20 @@ where the bugs will be, and where the tests go.
 
 ### Resolution order, most to least trustworthy
 
-1. **Apple part number** (`MDWK4CL/A`, refurb `FVW33CL/A`) → exact config
-   lookup in `models.yaml`. Suffix `CL/A` / `VC/A` is Canadian; `LL/A` fails
-   the Canadian gate. Refurb parts swap the leading `M` for `F`.
-2. **Model number** (`A2836` …) → family and connectivity; storage from the
+1. **Apple part number** (`MDWK4CL/A`, refurb `FVW33CL/A`) → the model, by
+   exact lookup in `models.yaml`; storage and connectivity from the title.
+   A part identifies the model and nothing finer: Apple part numbers follow
+   no pattern a prefix could capture, and listing each part's full config
+   would be ~120 hand-kept entries for facts every Apple title states.
+   Suffix `CL/A` / `VC/A` is Canadian; `LL/A` fails the Canadian gate.
+   Refurb parts swap the leading `M` for `F` (refurb `FXN93` is new `MXN93`).
+2. **Model number** (`A2836` …) → model and connectivity; storage from the
    title.
 3. **Source-structured fields** — Apple's `refurbClearModel` /
    `dimensionCapacity`, Orchard variant options, Best Buy `specs[]`.
-4. **Title regex**, last.
+4. **Title facts**, last: family, size, chip, generation and year, each
+   matched against the catalog. The listing resolves only when every model
+   the facts don't contradict agrees; `models.yaml`'s header has the rule.
 
 Never default. A listing that resolves no further than "an iPad Air, chip
 unknown" is **unresolved**, held out of the ranking, and listed for manual
@@ -315,21 +326,26 @@ that error only surfaces after purchase.
 ### `config/models.yaml` shape
 
 ```yaml
-ipad_pro_11_m4:
-  family: pro
-  chip: M4
-  size: 11
-  year: 2024
-  ram_gb: {default: 8, "1024": 16, "2048": 16}
-  model_numbers: {wifi: [A2836], cellular: [A2837, A3006]}
-  part_prefixes: []     # filled from observed Apple pages, one source comment each
-  aliases: ["11-inch iPad Pro (M4)", "iPad Pro 11 (7th gen)", "iPad Pro 11 2024"]
-  pencil_pro: true
+models:
+  ipad_air_13_m2:
+    family: air
+    chip: M2
+    size: 13
+    size_aliases: [12.9]      # sizes a title may state for the same model
+    years: [2024]
+    generations: [6, 7, 8]    # every number retailers use
+    ram_gb: {default: 8}      # per storage where it varies: {default: 8, 1024: 16}
+    model_numbers: {wifi: [A2898], cellular: [A2899], non_canadian: [A2900]}
+    parts: []                 # observed on Apple CA pages, one source comment each
 
-out_of_scope:           # resolve and dismiss quietly (§1)
-  - {id: ipad_pro_11_m2, model_numbers: [A2759, A2761, A2435, A2762], reason: "Pencil 2 only"}
-  - {id: ipad_air_5_m1, aliases: ["iPad Air (5th generation)"], reason: "M1, Pencil 2 only"}
+out_of_scope:                 # resolve and dismiss quietly (§1)
+  ipad_air_5_m1: {family: air, chip: M1, size: 10.9, years: [2022], generations: [5],
+                  model_numbers: [A2588, A2589, A2591], reason: "M1, Pencil 2 only"}
 ```
+
+Matching uses structured facts rather than alias strings: a title's wording
+varies endlessly, but the facts it states — family, size, chip, generation,
+year — come from a small set.
 
 ### The traps `tests/test_specs.py` must cover
 
@@ -338,14 +354,25 @@ Table-driven cases, each one a real title shape seen in the research:
 - **Air chip ambiguity.** Apple's own store titles omit the chip ("11-inch
   iPad Air Wi‑Fi 128GB - Blue"). "iPad Air 2024" = M2 but "iPad Pro 2024" = M4.
   Retailers' "Air 6th/7th gen" numbering is unofficial. Without a part or model
-  number, chip-less Air titles are unresolved.
+  number, chip-less Air titles are unresolved. Best Buy's own numbering is
+  consistent (6 = M2, 7 = M3, 8 = M4), but that is one retailer, not a
+  convention. Revisit if Best Buy's `specs[]` (step 3) leaves many of its Airs
+  held for review.
 - **"12.9" means a pre-M4 Pro, except on an Air**, where the 13" measures
   12.9" diagonally. A "12.9-inch Pro" is out of scope; a "12.9-inch Air" is a
   13" M2 or later.
 - **"4th generation"** is the 2022 11" M2 Pro, the 2020 12.9" A12Z Pro, or the
   whole 2020 product line in Apple's iPadOS 27 list. Always parse size and
   generation together — and every one of them is out of scope.
-- **M4 Pro aliases**: "7th gen", "2024", mislabelled "12.9".
+- **11" Pro generation numbers name two models.** Apple numbers the 11" Pro
+  1–4 (M2 = 4th); Best Buy continues that count (M4 = 5th, M5 = 6th); the
+  iPad Pro line as a whole counts M1 = 5th, M2 = 6th, M4 = 7th, M5 = 8th.
+  So a chip-less "11-inch … (5th Generation)" is an M1 or an M4, and is
+  unresolved. On the 12.9"/13" every count agrees.
+- **M4 Pro aliases**: "7th gen", "2024". A "12.9-inch M4 Pro" is a
+  mislabelled 13", but it is held for review rather than resolved: letting
+  "12.9" name the M4 would make every chip-less "12.9-inch Pro" ambiguous,
+  turning a common, quietly excluded refurb into daily review noise.
 - **"iPad Air (5th generation)"** is M1 → known out-of-scope, not unresolved.
 - **Nano-texture on a 256/512 GB Pro** is a listing error (it's a 1–2 TB
   option). Parse storage from the title and ignore the nano claim; the key
@@ -450,7 +477,7 @@ and the new-price reference comes with it. Write `models.yaml` and the
 `test_specs.py` table first; Apple's titles and part numbers are the fixtures.
 
 **Done when:** `report.py` prints every in-scope Apple tile resolved to a key,
-out-of-scope tiles (iPad mini, M2 Pro) are dismissed quietly, and `pytest -q`
+out-of-scope tiles (2022 M2 Pros) are dismissed quietly, and `pytest -q`
 passes.
 
 ### Phase 2 — digest and schedule

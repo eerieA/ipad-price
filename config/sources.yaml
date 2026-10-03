@@ -44,6 +44,8 @@ sources:
         expect: '"fullPrice"'
       - url: "https://www.apple.com/ca/shop/buy-ipad/ipad-air"
         expect: '"fullPrice"'
+      - url: "https://www.apple.com/ca/shop/buy-ipad/ipad-mini"
+        expect: '"fullPrice"'
 
   - id: orchard
     name: Orchard (getorchard.com)

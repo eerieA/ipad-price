@@ -34,6 +34,9 @@ RESOLVED = [
     ("13-inch iPad Air Wi‑Fi + Cellular 1TB - Blue", "MH9T4CL/A", "ipad_air_13_m4", 1024, "cellular"),
     ("11-inch iPad Pro Wi‑Fi 256GB with standard glass - Space Black",
      "MDWK4CL/A", "ipad_pro_11_m5", 256, "wifi"),
+    ("iPad mini Wi‑Fi + Cellular 256GB - Blue", "MXPW3CL/A", "ipad_mini_a17pro", 256, "cellular"),
+    # the refurb mini: unlisted part, but the title names the chip
+    ("Refurbished iPad mini (A17 Pro) Wi-Fi 128GB - Purple", "FXN93CL/A", "ipad_mini_a17pro", 128, "wifi"),
     # constructed: the new-stock form of an observed refurb part (F → M)
     ("11-inch iPad Pro Wi-Fi + Cellular 512GB", "MVW33CL/A", "ipad_pro_11_m4", 512, "cellular"),
     # Best Buy
@@ -98,7 +101,6 @@ OUT_OF_SCOPE = [
     # Apple refurb
     ("Refurbished 11-inch iPad Pro Wi‑Fi+Cellular 128GB Space Grey (4th Generation)", "FNYC3VC/A"),
     ("Refurbished 12.9-inch iPad Pro Wi-Fi + Cellular 128GB Space Gray (6th Generation)", "FP1X3VC/A"),
-    ("Refurbished iPad mini (A17 Pro) Wi-Fi 128GB - Purple", "FXN93CL/A"),
     # Best Buy
     ("Apple 2022 iPad Pro, 12.9-inch, 256GB - Space Gray (Certified Refurbished)", None),
     ('Open Box - Apple iPad Air 10.9" (M1) 256GB with Wi-Fi (5th Generation) - Pink', None),
@@ -113,6 +115,8 @@ OUT_OF_SCOPE = [
     ("Apple iPad Air (5th generation) 64GB Wi-Fi", None),
     # constructed, from §6: a chip-less "12.9-inch Pro" is pre-M4
     ('Apple iPad Pro 12.9" 256GB Wi-Fi Space Gray', None),
+    # constructed: the mini before the A17 Pro takes only the Pencil 2
+    ("Apple iPad mini (6th generation) 64GB Wi-Fi Purple", None),
     # constructed: base iPads
     ("Apple iPad 11-inch (A16) Wi-Fi 128GB - Blue", None),
     ("Apple iPad (10th generation) 64GB Wi-Fi", None),
@@ -137,6 +141,8 @@ UNRESOLVED = [
     ('Open Box - Apple iPad Pro 11" 256GB with Wi-Fi & 5G (5th Generation) - Space Black', None),
     # no size: M3 11" or 13"
     ("Open Box - Apple iPad Air w/ Wi-Fi Touchscreen Tablet - Blue (Apple M3 / 8 GB RAM / 128 GB NVMe / MacOS)", None),
+    # constructed: the A17 Pro and 6th-gen minis share the 8.3" screen
+    ("Apple iPad mini 8.3-inch 256GB Wi-Fi Space Grey", None),
     # constructed: no storage
     ('Apple iPad Pro M4 11" Wi-Fi Space Black', None),
     # constructed: a part number the catalog doesn't know falls back to the title
@@ -163,6 +169,7 @@ def test_ambiguous_or_incomplete_listing_is_unresolved(title, part):
     ('Apple iPad Pro M5 13" 2TB Wi-Fi', 16),
     ('Apple iPad Pro M5 13" 512GB Wi-Fi', 12),
     ('Apple iPad Air M4 11" 128GB Wi-Fi', 12),
+    ("Apple iPad mini (A17 Pro) 512GB Wi-Fi", 8),
 ])
 def test_ram_follows_model_and_storage(title, ram_gb):
     assert parse(title).ram_gb == ram_gb
