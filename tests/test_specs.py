@@ -74,6 +74,16 @@ RESOLVED = [
     # RAM stated beside storage; size after the colour
     ('Open Box - Apple iPad Pro ( WiFi + 5G LTE) - Silver 13" Touchscreen Tablet - Silver '
      '(Apple M4 / 8 GB RAM / 256 GB eMMC / MacOS)', None, "ipad_pro_13_m4", 256, "cellular"),
+    # Best Buy: chip-less titles, settled by the part number its product API
+    # returns as `modelNumber` (§3)
+    ('Refurbished (Good) - Apple iPad Pro 11" 256GB with Wi-Fi (5th Generation) - Silver',
+     "MVV93CL/A", "ipad_pro_11_m4", 256, "wifi"),
+    ('Refurbished (Excellent) - Apple iPad Pro 11" 2TB with Nano-Etched Glass, Wi-Fi & 5G (5th Generation) - Silver',
+     "MWRT3CL/A", "ipad_pro_11_m4", 2048, "cellular"),
+    ('Apple iPad Air 13" 512GB with Wi-Fi (6th Generation) - Space Grey',
+     "MV2J3CL/A", "ipad_air_13_m2", 512, "wifi"),
+    ('Refurbished (Excellent) - Apple iPad Air 11" 256GB with Wi-Fi & 5G (6th Generation) - Blue',
+     "MUXJ3CL/A", "ipad_air_11_m2", 256, "cellular"),
     # Costco
     ("Apple iPad Air, 11 in. 128GB, Wi-Fi, M4 Chip, Built For Apple Intelligence",
      None, "ipad_air_11_m4", 128, "wifi"),
@@ -134,6 +144,14 @@ OUT_OF_SCOPE = [
     ("Refurbished (Good) - Apple iPad Mini 2 16GB Space Gray Wi-Fi Only", None),
     # the A-number alone places it
     ("Refurbished (Good) - Apple iPad mini 2 32GB - WiFi (A1489) Silver", None),
+    # Best Buy: 9.7" and first 12.9" models, by size and year
+    ('Refurbished (Excellent) - Apple iPad Pro 9.7" screen 32GB - WiFi (2016 - A1673) Rose Gold - Certified Refurbished', None),
+    ('Refurbished (Fair) - Apple iPad Pro (2015) 12.9" 128GB With Wi-Fi - Gold', None),
+    ('Refurbished (Excellent) - Apple iPad Pro 12.9" 128GB with Wi-Fi (1st Generation) - Space Gray', None),
+    ('Refurbished (Excellent) - Apple iPad Air 2 9.7" screen 64GB - WiFi (2014 - A1566) Space Gray - Certified Refurbished', None),
+    ('Refurbished (Good) - Apple iPad Air 9.7" screen 32GB - WiFi (1st Gen. Late 2013 - A1474) Space Gray', None),
+    # no size or year: the part number places it
+    ("Refurbished (Excellent) - Apple iPad Air - 16GB - Wi-Fi - Space Grey", "MD785C/A"),
     # constructed: base iPads
     ("Apple iPad 11-inch (A16) Wi-Fi 128GB - Blue", None),
     ("Apple iPad (10th generation) 64GB Wi-Fi", None),

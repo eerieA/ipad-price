@@ -54,8 +54,8 @@ digest noise.
 | Source | Accepted | Excluded |
 | --- | --- | --- |
 | Apple Certified Refurbished | all (single grade: new battery + outer shell, 1-yr warranty) | — |
-| Best Buy (own stock) | new; `Geek Squad Open Box` ("cosmetically flawless", full warranty) | — |
-| Best Buy Marketplace | `Refurbished Excellent` (1-yr warranty) | `Refurbished Good`/`Fair`; `Open Box` (marketplace, ungraded) |
+| Best Buy (own stock) | `Brand New`; `Geek Squad Open Box` ("cosmetically flawless", full warranty) | — |
+| Best Buy Marketplace | `Refurbished Excellent` (1-yr warranty) | `Refurbished Good`/`Fair`; `Open Box` (marketplace, ungraded); `Brand New` (a third-party seller's new unit: seller quality varies per seller, the reason §3 keeps marketplaces out) |
 | Orchard | `Like New` | `Very Good`, `Good` |
 | Walmart (incl. marketplace) | title grade `A+`, `A`, `Excellent`, `Like New`, `Premium` | `B`, `Good`, `Fair`, `Used`; bare `Refurbished`/`Restored` (ungraded) |
 | Amazon.ca, sold by Amazon | new; Amazon Resale `Used – Like New` (graded and sold by Amazon itself) | Resale `Very Good`/`Good`/`Acceptable`; everything sold by third parties, Renewed included. Renewed sold by Amazon.ca is on neither side yet (§11) |
@@ -141,7 +141,9 @@ a field missing on most rows can't be used to rank them.
 Fetch paths and bot defenses verified 2026-09-30 from a **residential** IP.
 "Runs on" is Phase 0's placement (§9), from three Actions runs and one desktop
 run (`research/probe-*.md`), naming the plainest client that passed every run
-on that runner.
+on that runner — except Best Buy, where `requests` passes but at ~10 s a
+request against ~0.2 s for `curl_cffi`, and a poll there is hundreds of
+requests.
 
 | Source | Sells | Fetch path | Bot defense seen | Runs on |
 | --- | --- | --- | --- | --- |
@@ -149,17 +151,27 @@ on that runner.
 | **Apple CA** — new | new | `/ca/shop/buy-ipad/ipad-pro`, `/ipad-air` and `/ipad-mini`, inline analytics JSON (`products[].partNumber`, `price.fullPrice`) | none | Actions, `requests` |
 | **Orchard** (getorchard.com) | refurb | Shopify `/collections/refurbished-ipad-pros/products.json`, `/collections/refurbished-tablets/products.json`; condition is a variant option | none | Actions, `requests` |
 | **Costco** | new | hand-listed product URLs → JSON-LD `offers.price` | none seen | Actions, `requests` |
-| **Best Buy** | new, open box, marketplace refurb | JSON API: `api/v2/json/search?categoryid=17154970` (Pro) / `17154972` (Air) / `17154974` (mini); `api/v2/json/product/{sku}` for `specs["Product Condition"]`; `api/offers/v1/products/{sku}/offers` for every seller | Akamai — HTML pages 403 even from residential; JSON passed | Actions, `requests` |
+| **Best Buy** | new, open box, marketplace refurb | JSON API: `api/v2/json/search?categoryid=17154970` (Pro) / `17154972` (Air) / `17154974` (mini), 100 a page, every page; `api/v2/json/product/{sku}` for the part number (`modelNumber`), `specs["Product Condition"]` and stock; `api/offers/v1/products/{sku}/offers` for every seller | Akamai — HTML pages 403 even from residential; JSON passed | Actions, `curl_cffi` |
 | **Staples** | new (clearance) | Shopify `search/suggest.json` / `products.json` | Cloudflare — plain HTTP 403; passes with `curl_cffi` Chrome impersonation, but not from Actions | desktop, `curl_cffi` |
 | **Walmart** | new, marketplace refurb | `/en/c/kp/refurbished-ipad` and seeded `/en/ip/<slug>/<id>` pages, `__NEXT_DATA__` JSON; condition only in title | PerimeterX — intermittent, see note below | Actions, `requests` |
 | **Amazon.ca** | new + Amazon Resale, sold by Amazon only | seeded ASINs → offers panel `gp/product/ajax/aodAjaxMain/?asin=…`, keep offers sold by Amazon itself (Amazon.ca, or the Resale seller — its exact seller string on .ca is unverified, confirm in Phase 3) | Akamai proof-of-work on the first cold request; 503 from Actions with either client | desktop, `curl_cffi` |
 
 Notes that constrain the implementation:
 
-- **Best Buy search returns only the buy-box winner.** A marketplace SKU is
-  a shared catalog entry with several sellers, so every candidate SKU needs the
-  offers call. Category results also mix in carrier monthly plans ($20–60 rows)
-  and accessories, which are dropped before parsing. "Geek Squad Certified
+- **Best Buy search returns only the buy-box winner,** with no part number
+  and no stock state. A marketplace SKU is a shared catalog entry with several
+  sellers, and the winner is not always the cheapest, so a marketplace SKU
+  that could rank needs the offers call; every SKU that could rank needs the
+  product call. One that is dismissed whatever those calls say — an
+  out-of-scope title, an excluded condition, sold out — is recorded from search
+  alone. That is still ~500 requests a poll (~1,100 SKUs across the three
+  categories), spaced 0.5 s apart.
+- **Best Buy is two sources:** `bestbuy` (own stock) and `bestbuy_marketplace`.
+  They take different condition labels, and never share sellers — no Best Buy
+  offer appeared on any of 345 marketplace SKUs — so each walks the same search
+  and keeps its side of the buy box. Category results also mix in carrier plans
+  (titled "… Monthly Financing", priced per month) and accessories (`brandName`
+  not `APPLE`), which are dropped before parsing. "Geek Squad Certified
   Refurbished" never appeared for iPads; Best Buy's own used stock is `Geek
   Squad Open Box`.
 - **Costco's search is a POST to a Google Retail Search API** needing a client
@@ -355,8 +367,9 @@ Table-driven cases, each one a real title shape seen in the research:
   Retailers' "Air 6th/7th gen" numbering is unofficial. Without a part or model
   number, chip-less Air titles are unresolved. Best Buy's own numbering is
   consistent (6 = M2, 7 = M3, 8 = M4), but that is one retailer, not a
-  convention. Revisit if Best Buy's `specs[]` (step 3) leaves many of its Airs
-  held for review.
+  convention. Best Buy's product API gives most of its listings a part number,
+  which settles the chip (step 1); revisit if the listings without one keep
+  many of its Airs held for review.
 - **"12.9" means a pre-M4 Pro, except on an Air**, where the 13" measures
   12.9" diagonally. A "12.9-inch Pro" is out of scope; a "12.9-inch Air" is a
   13" M2 or later.
@@ -400,7 +413,7 @@ Table-driven cases, each one a real title shape seen in the research:
   − GONE    Pro 11" M4 512GB    Apple refurb  (sold out after 5h)
 
   ── within budget ($1,000) ────────────────────────────────────
-    $849  Air 11" M3 256GB    8GB   Best Buy Mkt · Refurb Excellent · 1yr
+    $849  Air 11" M3 256GB    8GB   Best Buy Mkt · <seller> · Refurb Excellent · 1yr
                                      new ref: —
     $938  Air 11" M4 128GB   12GB   Costco · new
                                      new ref: $938 (Costco) — this is it
@@ -424,7 +437,8 @@ Table-driven cases, each one a real title shape seen in the research:
 
 - **Changes first**, because they are why today's email differs from yesterday's. "Changed" means list price, stock or appearance — never effective price, which also moves when I edit a `source_adjustment`. They are read from the log: each source's last poll before the 24-hour window against its latest, plus anything that appeared and vanished inside the window. mini-pc instead stored a snapshot of the last digest sent; that would be a second piece of state to commit beside the log, and its one advantage — a failed send's changes carry into the next digest — is worth little when a missing email is already loud.
 - **One row per key**, cheapest listing only. Other listings for the same key appear as a count (`+2 more`), not rows.
-- **Held for review** is where the parser and the condition table admit what they don't know (§1, §6).
+- **Held for review** is where the parser and the condition table admit what they don't know (§1, §6). Every gate that can dismiss runs first, so a listing is held only if it could rank once resolved: an unresolved US unit or "Refurbished Fair" is dismissed, not reviewed.
+- **Marketplace rows name the seller**, since that is who the unit is bought from.
 - **Coverage** is computed from the observation files, never from a success flag, and per source, because the split runners fail independently. It counts 6-hour schedule slots with at least one poll, so a late cron run still lands in its slot and a manual extra run can't make up for a missed one.
 
 ---
@@ -438,7 +452,7 @@ iPads today". Mitigations:
 
 - **An empty or challenge response is a failure, never zero listings.** Each fetcher checks for its source's challenge markers (`bm-verify`, `/blocked`, `px-captcha`, `Just a moment`) and for zero products from a source that previously returned some. Shopify answers a wrong collection handle with `200 {"products": []}` — mini-pc learned this — so Orchard and Staples need the same check.
 - A blocked source is logged, skipped, and shown in coverage. It never fails the run or blocks the digest.
-- Politeness: 4 polls a day, a handful of requests per source per poll.
+- Politeness: 4 polls a day, one request at a time. Most sources take a handful of requests a poll; Best Buy takes ~500, spaced 0.5 s apart, because its search shows neither part number, stock nor every seller (§3).
 
 **Parser misresolution** — an M2 Air read as M3, or a 12.9" Pro read as an Air. Mitigated by the resolution order, by never defaulting, and by the test table (§6).
 
@@ -533,7 +547,8 @@ ipad-price/
 ├── .github/workflows/      # probe.yml (Phase 0), poll.yml (Phase 2)
 └── tests/
     ├── test_specs.py       # the suite that matters
-    └── test_ranking.py     # gates, price, changes, coverage
+    ├── test_ranking.py     # gates, price, changes, coverage
+    └── test_bestbuy.py     # the Best Buy fetcher on canned responses
 ```
 
 No Docker: the Actions runner and the desktop both run plain Python. Dependencies are `requests`, `pyyaml` and `curl_cffi` (Staples and Amazon, which pass from the desktop only with a browser TLS fingerprint).

@@ -32,7 +32,9 @@
 #                      (§2). 0 unless a reason is stated beside it.
 #   conditions         `condition_raw` labels on each side of plan §1's
 #                      condition table. A label on neither side is held for
-#                      review, never dropped (§1).
+#                      review, never dropped (§1). `new` labels are accepted
+#                      and are also what the new-price reference is built
+#                      from (§2).
 
 sources:
   - id: apple_refurb
@@ -51,7 +53,7 @@ sources:
     client: requests
     short: Apple new
     source_adjustment: 0
-    conditions: {accepted: ["new"], excluded: []}
+    conditions: {new: ["new"]}
     challenge: []
     steps:
       - url: "https://www.apple.com/ca/shop/buy-ipad/ipad-pro"
@@ -79,21 +81,58 @@ sources:
       - url: "{url}"
         expect: '"@type":"Product"'
 
+  # Best Buy is two sources over one API: its own stock and its marketplace.
+  # They take different condition labels (§1), and they never share sellers —
+  # no Best Buy offer appeared on any of 345 marketplace SKUs — so each source
+  # walks the same search pages and keeps its own half (`marketplace`).
+  #
+  # `role` tells src/sources/bestbuy.py what a step is: `search` pages are
+  # walked with &page=N to the last page; `product` (part number, condition,
+  # stock) and `offers` (every seller) run per SKU. scripts/probe.py ignores
+  # `role` and runs the steps as written.
+  #
+  # curl_cffi although requests passes: Akamai answers requests in ~10 s and a
+  # Chrome fingerprint in ~0.2 s, and a poll here is hundreds of requests.
   - id: bestbuy
-    name: Best Buy
-    challenge: ["Access Denied", "bm-verify"]
-    sample: {sku: "19495714"}   # iPad Pro M5 13" 256GB Wi-Fi, sold by Best Buy
-    steps:
-      - url: "https://www.bestbuy.ca/api/v2/json/search?categoryid=17154970&lang=en-CA&pageSize=100"
+    name: Best Buy — own stock
+    client: curl_cffi
+    marketplace: false
+    short: Best Buy
+    source_adjustment: 0
+    conditions: {new: ["Brand New"], accepted: ["Geek Squad Open Box"], excluded: []}
+    challenge: &bestbuy_challenge ["Access Denied", "bm-verify"]
+    sample: &bestbuy_sample {sku: "19495714"}   # iPad Pro M5 13" 256GB Wi-Fi, sold by Best Buy
+    steps: &bestbuy_steps
+      - role: search
+        url: "https://www.bestbuy.ca/api/v2/json/search?categoryid=17154970&lang=en-CA&pageSize=100"
         expect: '"products":[{'
-      - url: "https://www.bestbuy.ca/api/v2/json/search?categoryid=17154972&lang=en-CA&pageSize=100"
+      - role: search
+        url: "https://www.bestbuy.ca/api/v2/json/search?categoryid=17154972&lang=en-CA&pageSize=100"
         expect: '"products":[{'
-      - url: "https://www.bestbuy.ca/api/v2/json/search?categoryid=17154974&lang=en-CA&pageSize=100"
+      - role: search
+        url: "https://www.bestbuy.ca/api/v2/json/search?categoryid=17154974&lang=en-CA&pageSize=100"
         expect: '"products":[{'
-      - url: "https://www.bestbuy.ca/api/v2/json/product/{sku}?lang=en-CA"
+      - role: product
+        url: "https://www.bestbuy.ca/api/v2/json/product/{sku}?lang=en-CA"
         expect: '"sku":'
-      - url: "https://www.bestbuy.ca/api/offers/v1/products/{sku}/offers"
+      - role: offers
+        url: "https://www.bestbuy.ca/api/offers/v1/products/{sku}/offers"
         expect: '"sellerId":'
+
+  - id: bestbuy_marketplace
+    name: Best Buy Marketplace
+    client: curl_cffi
+    marketplace: true
+    short: Best Buy Mkt
+    source_adjustment: 0
+    conditions:
+      accepted: ["Refurbished Excellent"]
+      # "Brand New" from a third-party seller is excluded by choice: seller
+      # quality varies per seller, the reason §3 keeps marketplaces out.
+      excluded: ["Brand New", "Open Box", "Refurbished Good", "Refurbished Fair"]
+    challenge: *bestbuy_challenge
+    sample: *bestbuy_sample
+    steps: *bestbuy_steps
 
   - id: staples
     name: Staples

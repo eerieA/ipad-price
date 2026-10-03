@@ -30,7 +30,7 @@
 #            7 = M3, 8 = M4); that is one retailer, not a convention.
 #
 # `parts` are Apple part numbers without the region suffix, as observed on
-# Apple CA pages. A refurbished part swaps the leading M for F (FVW33 is the
+# Apple CA pages and in Best Buy's product API. A refurbished part swaps the leading M for F (FVW33 is the
 # refurb MVW33), so lookup ignores the first letter. A part identifies the
 # model; storage and connectivity still come from the title. Listing each
 # part's full configuration would be ~120 hand-kept entries for a fact every
@@ -50,7 +50,11 @@ models:
     ram_gb: {default: 8, 1024: 16, 2048: 16}
     model_numbers: {wifi: [A2836], cellular: [A2837], non_canadian: [A3006]}
     # Apple CA refurb grid. Not sold new in CA any more (§1).
-    parts: [FVVF3, FVVG3, FVW13, FVW33, FVW43, FWR63, FWR73, FWRP3]
+    parts: [FVVF3, FVVG3, FVW13, FVW33, FVW43, FWR63, FWR73, FWRP3,
+            # Best Buy product API `modelNumber`, each attributed by Best Buy's own
+            # Processor Type and Screen Size specs or a listing title naming the chip.
+            MVV83, MVV93, MVVC3, MVVD3, MVW53, MVW63, MVW73, MVW83, MWR83,
+            MWR93, MWRQ3, MWRR3, MWRT3]
 
   ipad_pro_13_m4:
     family: pro
@@ -97,7 +101,10 @@ models:
     generations: [6, 7, 8]
     ram_gb: {default: 8}
     model_numbers: {wifi: [A2902], cellular: [A2903], non_canadian: [A2904]}
-    parts: []
+    # Best Buy product API `modelNumber`, each attributed by Best Buy's own
+    # Processor Type and Screen Size specs or a listing title naming the chip.
+    parts: [MUWC3, MUWD3, MUWE3, MUWG3, MUWJ3, MUWK3, MUWN3, MUXJ3, MUXN3,
+            MUXP3, MUXQ3, MUXR3, MUXU3]
 
   ipad_air_13_m2:
     family: air
@@ -108,7 +115,10 @@ models:
     generations: [6, 7, 8]
     ram_gb: {default: 8}
     model_numbers: {wifi: [A2898], cellular: [A2899], non_canadian: [A2900]}
-    parts: []
+    # Best Buy product API `modelNumber`, each attributed by Best Buy's own
+    # Processor Type and Screen Size specs or a listing title naming the chip.
+    parts: [MV273, MV293, MV2H3, MV2J3, MV2K3, MV2N3, MV2P3, MV2R3, MV6Q3,
+            MV6R3, MV6T3, MV6U3, MV733, MV763, MV773]
 
   ipad_air_11_m3:
     family: air
@@ -196,6 +206,10 @@ out_of_scope:
                      model_numbers: [A1876, A2014, A1895, A1983], reason: "Pencil 2 only"}
   ipad_pro_12_9_a10x: {family: pro, chip: A10X, size: 12.9, years: [2017], generations: [2],
                      model_numbers: [A1670, A1671, A1821], reason: "1st-gen Pencil only"}
+  ipad_pro_12_9_a9x: {family: pro, chip: A9X, size: 12.9, years: [2015], generations: [1],
+                     model_numbers: [A1584, A1652], reason: "1st-gen Pencil only"}
+  ipad_pro_9_7_a9x: {family: pro, chip: A9X, size: 9.7, years: [2016],
+                     model_numbers: [A1673, A1674, A1675], reason: "1st-gen Pencil only"}
   ipad_pro_10_5_a10x: {family: pro, chip: A10X, size: 10.5, years: [2017],
                      model_numbers: [A1701, A1709, A1852], reason: "1st-gen Pencil only"}
   ipad_air_5_m1:    {family: air, chip: M1, size: 10.9, years: [2022], generations: [5],
@@ -204,6 +218,12 @@ out_of_scope:
                      model_numbers: [A2316, A2324, A2325, A2072], reason: "Pencil 2 only"}
   ipad_air_3_a12:   {family: air, chip: A12, size: 10.5, years: [2019], generations: [3],
                      model_numbers: [A2152, A2123, A2153, A2154], reason: "1st-gen Pencil only"}
+  ipad_air_2_a8x:   {family: air, chip: A8X, size: 9.7, years: [2014], generations: [2],
+                     model_numbers: [A1566, A1567], reason: "no Pencil support"}
+  ipad_air_1_a7:    {family: air, chip: A7, size: 9.7, years: [2013], generations: [1],
+                     model_numbers: [A1474, A1475, A1476], reason: "no Pencil support",
+                     # Best Buy product API, by its Processor Type and Screen Size specs
+                     parts: [MD785, MD786, MD792, ME988]}
   ipad_mini_6_a15:  {family: mini, chip: A15, size: 8.3, years: [2021], generations: [6],
                      model_numbers: [A2567, A2568, A2569], reason: "Pencil 2 only"}
   ipad_mini_5_a12:  {family: mini, chip: A12, size: 7.9, years: [2019], generations: [5],

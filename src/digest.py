@@ -22,6 +22,7 @@ from email.message import EmailMessage
 import yaml
 
 import changes
+import conditions
 import coverage
 import dotenv_lite
 import ranking
@@ -108,14 +109,16 @@ def _ranked_block(config, title, rows, references):
     for best, others in rows:
         o, resolved = best.observation, best.resolved
         details = [config.short_name(o["source"]), o["condition_raw"]]
+        if config.sources.get(o["source"], {}).get("marketplace"):
+            details.insert(1, o["seller"])   # the seller to buy from, not the site
         if resolved.connectivity == "cellular":
             details.append("cellular")
         more = f"   +{others} more" if others else ""
-        lines.append(f"  {money(best.effective_price):>7}  {describe_key(resolved.key):<20} "
+        lines.append(f"  {money(best.effective_price):>9}  {describe_key(resolved.key):<20} "
                      f"{resolved.ram_gb:>2}GB   {' · '.join(details)}{more}")
         listed = f"{money(best.price)} listed · " if _adjusted(best) else ""
-        lines.append(f"           {listed}{_reference(config, best, references)}")
-        lines.append(f"           {o['url']}")
+        lines.append(f"             {listed}{_reference(config, best, references)}")
+        lines.append(f"             {o['url']}")
     if not rows:
         lines.append("  none")
     return lines + [""]
@@ -128,7 +131,8 @@ def _reference(config, candidate, references):
         return "new ref: —"
     price, source = reference
     text = f"new ref: {money(price)} ({config.short_name(source)})"
-    if candidate.observation["condition_raw"] == "new" and candidate.price == price:
+    o = candidate.observation
+    if conditions.is_new(config.sources.get(o["source"], {}), o["condition_raw"]) and candidate.price == price:
         return text + " — this is it"
     if candidate.price >= price:
         return text + " — not below new"

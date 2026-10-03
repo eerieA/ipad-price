@@ -48,7 +48,7 @@ jobs:
       - name: Poll
         id: poll
         continue-on-error: true
-        run: python src/poll.py --sources apple_refurb apple_new
+        run: python src/poll.py --sources apple_refurb apple_new bestbuy bestbuy_marketplace
 
       # Runs whatever the poll did: a failed poll shows up in the digest's
       # coverage block, and a missing email is the louder signal (§4).

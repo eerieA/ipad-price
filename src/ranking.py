@@ -93,27 +93,27 @@ def latest_poll(observations):
 
 def gate(config, observations):
     """Sort one set of observations into candidates, held for review, and
-    dismissed. Scope is decided before condition, so an unknown label on an
-    out-of-scope model is not review noise."""
+    dismissed. Every gate that can dismiss runs before anything is held, so
+    held means "could rank, if someone resolved it": an unknown label on an
+    out-of-scope model, or an unresolved US unit, is not review noise."""
     gated = Gated()
     for o in observations:
         result = config.parse(o)
+        verdict = conditions.classify(config.sources.get(o["source"], {}), o["condition_raw"])
         if isinstance(result, OutOfScope):
             gated.dismissed["out of scope"] += 1
-        elif not isinstance(result, Resolved):
-            gated.held.append((o, result.reason))
         elif _foreign(config, o):
             gated.dismissed["not a Canadian unit"] += 1
         elif o["in_stock"] is False:
             gated.dismissed["out of stock"] += 1
+        elif verdict == conditions.EXCLUDED:
+            gated.dismissed["condition below grade A"] += 1
+        elif not isinstance(result, Resolved):
+            gated.held.append((o, result.reason))
+        elif verdict == conditions.UNKNOWN:
+            gated.held.append((o, f"unknown condition label {o['condition_raw']!r}"))
         else:
-            verdict = conditions.classify(config.sources.get(o["source"], {}), o["condition_raw"])
-            if verdict == conditions.EXCLUDED:
-                gated.dismissed["condition below grade A"] += 1
-            elif verdict == conditions.UNKNOWN:
-                gated.held.append((o, f"unknown condition label {o['condition_raw']!r}"))
-            else:
-                gated.candidates.append(Candidate(o, result, effective_price(config, o)))
+            gated.candidates.append(Candidate(o, result, effective_price(config, o)))
     return gated
 
 
@@ -157,7 +157,8 @@ def new_references(config, observations, now):
     Never a launch price, and never Apple's refurb "Was" price (§2). Only
     listings that pass the gates count — a US unit's price is no reference."""
     cutoff = stamp(now - timedelta(days=config.rules["new_reference_days"]))
-    recent = [o for o in observations if o["observed_at"] >= cutoff and o["condition_raw"] == "new"]
+    recent = [o for o in observations if o["observed_at"] >= cutoff
+              and conditions.is_new(config.sources.get(o["source"], {}), o["condition_raw"])]
     references = {}
     for c in gate(config, recent).candidates:
         best = references.get(c.resolved.key)

@@ -74,6 +74,24 @@ def test_an_unresolved_listing_is_held_with_the_parser_reason():
     assert gated.candidates == [] and len(gated.held) == 1
 
 
+# An unresolved listing that fails a gate whatever it resolves to is not worth
+# a review: held means "could rank, if someone resolved it".
+CHIPLESS = "11-inch iPad Air Wi‑Fi 128GB - Blue"
+UNRESOLVED_BUT_DISMISSED = [
+    (obs("us", 999.0, title=CHIPLESS, part="MZZZ4LL/A"), "not a Canadian unit"),
+    (obs("sold", 999.0, title=CHIPLESS, part=None, in_stock=False), "out of stock"),
+    (obs("fair", 999.0, title=CHIPLESS, part=None, source="bestbuy_marketplace",
+         condition="Refurbished Fair"), "condition below grade A"),
+]
+
+
+@pytest.mark.parametrize("o, reason", UNRESOLVED_BUT_DISMISSED,
+                         ids=[o["listing_id"] for o, _ in UNRESOLVED_BUT_DISMISSED])
+def test_an_unresolved_listing_failing_another_gate_is_dismissed_not_held(o, reason):
+    gated = ranking.gate(CONFIG, [o])
+    assert (gated.held, dict(gated.dismissed)) == ([], {reason: 1})
+
+
 def test_an_unknown_label_on_an_out_of_scope_model_is_not_review_noise():
     gated = ranking.gate(CONFIG, [obs("m2", 999.0, condition="Premium Plus",
                                       title="Refurbished 11-inch iPad Pro Wi‑Fi 128GB (4th Generation)",
@@ -127,6 +145,20 @@ def test_the_new_reference_is_the_cheapest_new_listing_in_the_window():
         obs("refurb", 709.0),
     ]
     assert ranking.new_references(CONFIG, log, NOW) == {("mini", "A17", 8.3, 128): (829.0, "apple_new")}
+
+
+MINI_BB = 'Apple iPad mini 8.3" 128GB with Wi-Fi (7th Generation) - Purple'
+
+
+def test_a_sources_own_new_label_makes_a_reference():
+    log = [obs("bb", 699.99, source="bestbuy", title=MINI_BB, part="MXN93CL/A", condition="Brand New")]
+    assert ranking.new_references(CONFIG, log, NOW) == {("mini", "A17", 8.3, 128): (699.99, "bestbuy")}
+
+
+def test_a_label_meaning_new_at_one_source_is_no_reference_where_it_is_excluded():
+    log = [obs("mkt", 649.0, source="bestbuy_marketplace", title=MINI_BB, part="MXN93CL/A",
+               condition="Brand New")]
+    assert ranking.new_references(CONFIG, log, NOW) == {}
 
 
 def test_a_foreign_new_unit_is_no_reference():
