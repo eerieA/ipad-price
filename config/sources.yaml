@@ -21,9 +21,9 @@
 #   {sku}          `sample.sku` below — a probe-only value; Phase 3 takes SKUs
 #                  from the search results instead
 #
-# Which HTTP client each source needs (plain requests, or curl_cffi's Chrome
-# impersonation) is deliberately not recorded here yet: scripts/probe.py tries
-# both, and the answer is Phase 0's evidence (§9), not a guess made in advance.
+# Which runner and HTTP client each source needs is Phase 0's result, recorded
+# in plan §3's "Runs on" column. scripts/probe.py ignores it and tries both
+# clients; a `client:` key lands here in Phase 3 with the fetcher that reads it.
 
 sources:
   - id: apple_refurb

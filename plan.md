@@ -134,19 +134,21 @@ a field missing on most rows can't be used to rank them.
 
 ## 3. Sources
 
-Verified 2026-09-30, every request from a **residential** IP. Until Phase 0
-(§9) places each source, the "Actions?" column is a prediction.
+Fetch paths and bot defenses verified 2026-09-30 from a **residential** IP.
+"Runs on" is Phase 0's placement (§9), from three Actions runs and one desktop
+run (`research/probe-*.md`), naming the plainest client that passed every run
+on that runner.
 
-| Source | Sells | Fetch path | Bot defense seen | Actions? |
+| Source | Sells | Fetch path | Bot defense seen | Runs on |
 | --- | --- | --- | --- | --- |
-| **Apple CA** — refurb | refurb | `/ca/shop/refurbished/ipad`, inline JSON `window.REFURB_GRID_BOOTSTRAP` (tiles with `partNumber`, `price.currentPrice.raw_amount`, `filters.dimensions`) | none | likely |
-| **Apple CA** — new | new | `/ca/shop/buy-ipad/ipad-pro` and `/ipad-air`, inline analytics JSON (`products[].partNumber`, `price.fullPrice`) | none | likely |
-| **Orchard** (getorchard.com) | refurb | Shopify `/collections/refurbished-ipad-pros/products.json`, `/collections/refurbished-tablets/products.json`; condition is a variant option | none | likely |
-| **Costco** | new | hand-listed product URLs → JSON-LD `offers.price` | none seen | likely |
-| **Best Buy** | new, open box, marketplace refurb | JSON API: `api/v2/json/search?categoryid=17154970` (Pro) / `17154972` (Air); `api/v2/json/product/{sku}` for `specs["Product Condition"]`; `api/offers/v1/products/{sku}/offers` for every seller | Akamai — HTML pages 403 even from residential; JSON passed | uncertain |
-| **Staples** | new (clearance) | Shopify `search/suggest.json` / `products.json` | Cloudflare — plain HTTP 403; passes with `curl_cffi` Chrome impersonation | uncertain |
-| **Walmart** | new, marketplace refurb | `/en/c/kp/refurbished-ipad` and seeded `/en/ip/<slug>/<id>` pages, `__NEXT_DATA__` JSON; condition only in title | PerimeterX — first cold request blocked; later requests with cookies served | unlikely |
-| **Amazon.ca** | new + Amazon Resale, sold by Amazon only | seeded ASINs → offers panel `gp/product/ajax/aodAjaxMain/?asin=…`, keep offers sold by Amazon itself (Amazon.ca, or the Resale seller — its exact seller string on .ca is unverified, confirm in Phase 3) | Akamai proof-of-work on the first cold request | unlikely |
+| **Apple CA** — refurb | refurb | `/ca/shop/refurbished/ipad`, inline JSON `window.REFURB_GRID_BOOTSTRAP` (tiles with `partNumber`, `price.currentPrice.raw_amount`, `filters.dimensions`) | none | Actions, `requests` |
+| **Apple CA** — new | new | `/ca/shop/buy-ipad/ipad-pro` and `/ipad-air`, inline analytics JSON (`products[].partNumber`, `price.fullPrice`) | none | Actions, `requests` |
+| **Orchard** (getorchard.com) | refurb | Shopify `/collections/refurbished-ipad-pros/products.json`, `/collections/refurbished-tablets/products.json`; condition is a variant option | none | Actions, `requests` |
+| **Costco** | new | hand-listed product URLs → JSON-LD `offers.price` | none seen | Actions, `requests` |
+| **Best Buy** | new, open box, marketplace refurb | JSON API: `api/v2/json/search?categoryid=17154970` (Pro) / `17154972` (Air); `api/v2/json/product/{sku}` for `specs["Product Condition"]`; `api/offers/v1/products/{sku}/offers` for every seller | Akamai — HTML pages 403 even from residential; JSON passed | Actions, `requests` |
+| **Staples** | new (clearance) | Shopify `search/suggest.json` / `products.json` | Cloudflare — plain HTTP 403; passes with `curl_cffi` Chrome impersonation, but not from Actions | desktop, `curl_cffi` |
+| **Walmart** | new, marketplace refurb | `/en/c/kp/refurbished-ipad` and seeded `/en/ip/<slug>/<id>` pages, `__NEXT_DATA__` JSON; condition only in title | PerimeterX — intermittent, see note below | Actions, `requests` |
+| **Amazon.ca** | new + Amazon Resale, sold by Amazon only | seeded ASINs → offers panel `gp/product/ajax/aodAjaxMain/?asin=…`, keep offers sold by Amazon itself (Amazon.ca, or the Resale seller — its exact seller string on .ca is unverified, confirm in Phase 3) | Akamai proof-of-work on the first cold request; 503 from Actions with either client | desktop, `curl_cffi` |
 
 Notes that constrain the implementation:
 
@@ -167,7 +169,11 @@ Notes that constrain the implementation:
   `__NEXT_DATA__`; the same request from a fresh session passed about 20
   minutes later. Fetching the category page first in the same session passed
   in both windows, so the fetcher always warms up there — and only the missing
-  payload, not the status, tells a block from a real page.
+  payload, not the status, tells a block from a real page. The warm-up isn't
+  a guarantee: from Actions, one warmed-up sequence in six still drew
+  `px-captcha` on the `/ip/` step. That is a skipped poll shown in coverage
+  (§8), not a reason to move Walmart to the desktop, which sees the same
+  intermittent block.
 - **Robots.** Best Buy disallows `/en-ca/search` but not `/api/`; Walmart
   disallows `/en/search` and bare `/en/ip/*` but allows `/en/ip/*/*` and
   `/c/kp/`. The fetch paths above stay inside what robots allows. Amazon's
@@ -206,7 +212,7 @@ config is edited.
   ┌─────────────────────────────┐    ┌─────────────────────────────┐
   │ GitHub Actions (schedule)   │    │ Desktop (Task Scheduler)    │
   │ sources that pass Phase 0   │    │ only sources Actions can't  │
-  │                             │    │ reach — may be empty        │
+  │                             │    │ reach: Staples, Amazon      │
   └──────────────┬──────────────┘    └──────────────┬──────────────┘
                  │ fetch → raw → parse              │
                  ▼                                  ▼
@@ -427,7 +433,7 @@ iPads today". Mitigations:
 `curl_cffi`'s Chrome impersonation, so the reports also say which client each
 source needs. A step passes on status 200, none of the source's challenge
 markers, and its `expect` marker present — the last because a block can
-answer 200 (§8). Each run's report goes in `research/probe-<date>-<runner>.md`;
+answer 200 (§8). Each run's report goes in `research/probe-<date>-<HHMM>-<runner>.md`;
 the reports only show status, sizes and marker names, so they are safe to commit.
 
 One run doesn't place a source: bot defenses vary with the runner's IP and the
@@ -500,7 +506,7 @@ ipad-price/
 └── tests/test_specs.py     # the suite that matters
 ```
 
-No Docker: the Actions runner and the desktop both run plain Python. Dependencies are `requests`, `pyyaml` and `curl_cffi` (Staples, and any other source Phase 0 shows needs a browser TLS fingerprint).
+No Docker: the Actions runner and the desktop both run plain Python. Dependencies are `requests`, `pyyaml` and `curl_cffi` (Staples and Amazon, which pass from the desktop only with a browser TLS fingerprint).
 
 ---
 
